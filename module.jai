@@ -1,0 +1,2 @@
+
+#load "slang.jai";
