@@ -1,7 +1,7 @@
 #ifndef SLANG_COM_HELPER_H
 #define SLANG_COM_HELPER_H
 
-/* \file slang-com-helper.h
+/** \file slang-com-helper.h
  */
 
 #include "slang.h"

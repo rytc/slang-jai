@@ -120,7 +120,7 @@ Most applications should not need to touch this section.
 */
 #ifndef SLANG_PLATFORM
 #define SLANG_PLATFORM
-/*
+/**
 Operating system defines, see http://sourceforge.net/p/predef/wiki/OperatingSystems/
 */
 #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_PARTITION_APP

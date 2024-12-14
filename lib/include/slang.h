@@ -1,7 +1,7 @@
 #ifndef SLANG_H
 #define SLANG_H
 
-/* \file slang.h
+/** \file slang.h
 
 The Slang API provides services to compile, reflect, and specialize code
 written in the Slang shading language.
@@ -79,7 +79,7 @@ Most applications should not need to touch this section.
 */
 #ifndef SLANG_PLATFORM
     #define SLANG_PLATFORM
-    /*
+    /**
     Operating system defines, see http://sourceforge.net/p/predef/wiki/OperatingSystems/
     */
     #if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_PARTITION_APP
@@ -273,7 +273,7 @@ convention for interface methods.
 #endif
 
 // Microsoft VC specific
-#if SLANG_MICROSOFT_FAMILY
+#if SLANG_VC
     #define SLANG_NO_INLINE __declspec(noinline)
     #define SLANG_FORCE_INLINE __forceinline
     #define SLANG_BREAKPOINT(id) __debugbreak();
@@ -305,7 +305,7 @@ convention for interface methods.
 /// SLANG_INLINE exists to have a way to inline consistent with SLANG_ALWAYS_INLINE
 #define SLANG_INLINE inline
 
-// If explicilty disabled and not set, set to not available
+// If explicitly disabled and not set, set to not available
 #if !defined(SLANG_HAS_EXCEPTIONS) && defined(SLANG_DISABLE_EXCEPTIONS)
     #define SLANG_HAS_EXCEPTIONS 0
 #endif
@@ -488,9 +488,9 @@ convention for interface methods.
     #define SLANG_UNALIGNED_ACCESS 0
 #endif
 
-// One endianess must be set
+// One endianness must be set
 #if ((SLANG_BIG_ENDIAN | SLANG_LITTLE_ENDIAN) == 0)
-    #error "Couldn't determine endianess"
+    #error "Couldn't determine endianness"
 #endif
 
 #ifndef SLANG_NO_INTTYPES
@@ -549,12 +549,12 @@ typedef uint32_t SlangSizeT;
     typedef int SlangSeverityIntegral;
     enum SlangSeverity : SlangSeverityIntegral
     {
-        SLANG_SEVERITY_DISABLED = 0, /*< A message that is disabled, filtered out. */
-        SLANG_SEVERITY_NOTE,         /*< An informative message. */
-        SLANG_SEVERITY_WARNING,      /*< A warning, which indicates a possible proble. */
-        SLANG_SEVERITY_ERROR,        /*< An error, indicating that compilation failed. */
-        SLANG_SEVERITY_FATAL,    /*< An unrecoverable error, which forced compilation to abort. */
-        SLANG_SEVERITY_INTERNAL, /*< An internal error, indicating a logic error in the compiler.
+        SLANG_SEVERITY_DISABLED = 0, /**< A message that is disabled, filtered out. */
+        SLANG_SEVERITY_NOTE,         /**< An informative message. */
+        SLANG_SEVERITY_WARNING,      /**< A warning, which indicates a possible problem. */
+        SLANG_SEVERITY_ERROR,        /**< An error, indicating that compilation failed. */
+        SLANG_SEVERITY_FATAL,    /**< An unrecoverable error, which forced compilation to abort. */
+        SLANG_SEVERITY_INTERNAL, /**< An internal error, indicating a logic error in the compiler.
                                   */
     };
 
@@ -737,12 +737,12 @@ typedef uint32_t SlangSizeT;
     enum SlangLineDirectiveMode : SlangLineDirectiveModeIntegral
     {
         SLANG_LINE_DIRECTIVE_MODE_DEFAULT =
-            0,                              /*< Default behavior: pick behavior base on target. */
-        SLANG_LINE_DIRECTIVE_MODE_NONE,     /*< Don't emit line directives at all. */
-        SLANG_LINE_DIRECTIVE_MODE_STANDARD, /*< Emit standard C-style `#line` directives. */
-        SLANG_LINE_DIRECTIVE_MODE_GLSL, /*< Emit GLSL-style directives with file *number* instead
+            0,                              /**< Default behavior: pick behavior base on target. */
+        SLANG_LINE_DIRECTIVE_MODE_NONE,     /**< Don't emit line directives at all. */
+        SLANG_LINE_DIRECTIVE_MODE_STANDARD, /**< Emit standard C-style `#line` directives. */
+        SLANG_LINE_DIRECTIVE_MODE_GLSL, /**< Emit GLSL-style directives with file *number* instead
                                            of name */
-        SLANG_LINE_DIRECTIVE_MODE_SOURCE_MAP, /*< Use a source map to track line mappings (ie no
+        SLANG_LINE_DIRECTIVE_MODE_SOURCE_MAP, /**< Use a source map to track line mappings (ie no
                                                  #line will appear in emitting source) */
     };
 
@@ -809,12 +809,12 @@ typedef uint32_t SlangSizeT;
     typedef SlangUInt32 SlangDebugInfoLevelIntegral;
     enum SlangDebugInfoLevel : SlangDebugInfoLevelIntegral
     {
-        SLANG_DEBUG_INFO_LEVEL_NONE = 0, /*< Don't emit debug information at all. */
-        SLANG_DEBUG_INFO_LEVEL_MINIMAL,  /*< Emit as little debug information as possible, while
-                                            still supporting stack trackes. */
-        SLANG_DEBUG_INFO_LEVEL_STANDARD, /*< Emit whatever is the standard level of debug
+        SLANG_DEBUG_INFO_LEVEL_NONE = 0, /**< Don't emit debug information at all. */
+        SLANG_DEBUG_INFO_LEVEL_MINIMAL,  /**< Emit as little debug information as possible, while
+                                            still supporting stack trackers. */
+        SLANG_DEBUG_INFO_LEVEL_STANDARD, /**< Emit whatever is the standard level of debug
                                             information for each target. */
-        SLANG_DEBUG_INFO_LEVEL_MAXIMAL,  /*< Emit as much debug infromation as possible for each
+        SLANG_DEBUG_INFO_LEVEL_MAXIMAL,  /**< Emit as much debug information as possible for each
                                             target. */
     };
 
@@ -823,8 +823,8 @@ typedef uint32_t SlangSizeT;
     enum SlangDebugInfoFormat : SlangDebugInfoFormatIntegral
     {
         SLANG_DEBUG_INFO_FORMAT_DEFAULT, ///< Use the default debugging format for the target
-        SLANG_DEBUG_INFO_FORMAT_C7, ///< CodeView C7 format (typically means debugging infomation is
-                                    ///< embedded in the binary)
+        SLANG_DEBUG_INFO_FORMAT_C7,  ///< CodeView C7 format (typically means debugging information
+                                     ///< is embedded in the binary)
         SLANG_DEBUG_INFO_FORMAT_PDB, ///< Program database
 
         SLANG_DEBUG_INFO_FORMAT_STABS, ///< Stabs
@@ -838,11 +838,11 @@ typedef uint32_t SlangSizeT;
     typedef SlangUInt32 SlangOptimizationLevelIntegral;
     enum SlangOptimizationLevel : SlangOptimizationLevelIntegral
     {
-        SLANG_OPTIMIZATION_LEVEL_NONE = 0, /*< Don't optimize at all. */
-        SLANG_OPTIMIZATION_LEVEL_DEFAULT,  /*< Default optimization level: balance code quality and
+        SLANG_OPTIMIZATION_LEVEL_NONE = 0, /**< Don't optimize at all. */
+        SLANG_OPTIMIZATION_LEVEL_DEFAULT,  /**< Default optimization level: balance code quality and
                                               compilation time. */
-        SLANG_OPTIMIZATION_LEVEL_HIGH,     /*< Optimize aggressively. */
-        SLANG_OPTIMIZATION_LEVEL_MAXIMAL, /*< Include optimizations that may take a very long time,
+        SLANG_OPTIMIZATION_LEVEL_HIGH,     /**< Optimize aggressively. */
+        SLANG_OPTIMIZATION_LEVEL_MAXIMAL, /**< Include optimizations that may take a very long time,
                                              or may involve severe space-vs-speed tradeoffs */
     };
 
@@ -1003,6 +1003,8 @@ typedef uint32_t SlangSizeT;
         // Add this new option to the end of the list to avoid breaking ABI as much as possible.
         // Setting of EmitSpirvDirectly or EmitSpirvViaGLSL will turn into this option internally.
         EmitSpirvMethod, // enum SlangEmitSpirvMethod
+
+        EmitReflectionJSON, // bool
         CountOf,
     };
 
@@ -1028,7 +1030,7 @@ typedef uint32_t SlangSizeT;
     };
     } // namespace slang
 
-    /* A result code for a Slang API operation.
+    /** A result code for a Slang API operation.
 
     This type is generally compatible with the Windows API `HRESULT` type. In particular, negative
     values indicate failure results, while zero or positive results indicate success.
@@ -1086,7 +1088,7 @@ typedef uint32_t SlangSizeT;
     ((((int32_t)(fac)) << 16) | ((int32_t)(code)) | int32_t(0x80000000))
 #define SLANG_MAKE_SUCCESS(fac, code) ((((int32_t)(fac)) << 16) | ((int32_t)(code)))
 
-    /************************** Facilities ************************************/
+    /*************************** Facilities ************************************/
 
     //! Facilities compatible with windows COM - only use if known code is compatible
 #define SLANG_FACILITY_WIN_GENERAL 0
@@ -1159,7 +1161,7 @@ typedef uint32_t SlangSizeT;
     //! Could not complete because the operation times out.
 #define SLANG_E_TIME_OUT SLANG_MAKE_CORE_ERROR(8)
 
-    /* A "Universally Unique Identifier" (UUID)
+    /** A "Universally Unique Identifier" (UUID)
 
     The Slang API uses UUIDs to identify interfaces when
     using `queryInterface`.
@@ -1216,7 +1218,7 @@ public:                                                              \
             reinterpret_cast<void**>(ppType))
 
 
-    /* Base interface for components exchanged through the API.
+    /** Base interface for components exchanged through the API.
 
     This interface definition is compatible with the COM `IUnknown`,
     and uses the same UUID, but Slang does not require applications
@@ -1280,7 +1282,7 @@ public:                                                              \
         SLANG_NO_THROW virtual void* SLANG_MCALL clone(const SlangUUID& guid) = 0;
     };
 
-    /* A "blob" of binary data.
+    /** A "blob" of binary data.
 
     This interface definition is compatible with the `ID3DBlob` and `ID3D10Blob` interfaces.
     */
@@ -1311,7 +1313,7 @@ public:                                                              \
         char chars[1];
     };
 
-    /* A (real or virtual) file system.
+    /** A (real or virtual) file system.
 
     Slang can make use of this interface whenever it would otherwise try to load files
     from disk, allowing applications to hook and/or override filesystem access from
@@ -1330,7 +1332,7 @@ public:                                                              \
             0x4BA0,
             {0xAD, 0x60, 0x1F, 0xD8, 0x63, 0xA9, 0x15, 0xAB})
 
-        /* Load a file from `path` and return a blob of its contents
+        /** Load a file from `path` and return a blob of its contents
         @param path The path to load from, as a null-terminated UTF-8 string.
         @param outBlob A destination pointer to receive the blob of the file contents.
         @returns A `SlangResult` to indicate success or failure in loading the file.
@@ -1351,7 +1353,7 @@ public:                                                              \
 
     typedef void (*SlangFuncPtr)(void);
 
-    /*
+    /**
     (DEPRECATED) ISlangSharedLibrary
     */
     struct ISlangSharedLibrary_Dep1 : public ISlangUnknown
@@ -1366,7 +1368,7 @@ public:                                                              \
     };
 #define SLANG_UUID_ISlangSharedLibrary_Dep1 ISlangSharedLibrary_Dep1::getTypeGuid()
 
-    /* An interface that can be used to encapsulate access to a shared library. An implementation
+    /** An interface that can be used to encapsulate access to a shared library. An implementation
     does not have to implement the library as a shared library
     */
     struct ISlangSharedLibrary : public ISlangCastable
@@ -1377,7 +1379,7 @@ public:                                                              \
             0x4a07,
             {0xae, 0x7e, 0x75, 0x2a, 0xf6, 0xa8, 0x15, 0x55})
 
-        /* Get a function by name. If the library is unloaded will only return nullptr.
+        /** Get a function by name. If the library is unloaded will only return nullptr.
         @param name The name of the function
         @return The function pointer related to the name or nullptr if not found
         */
@@ -1386,7 +1388,7 @@ public:                                                              \
             return (SlangFuncPtr)findSymbolAddressByName(name);
         }
 
-        /* Get a symbol by name. If the library is unloaded will only return nullptr.
+        /** Get a symbol by name. If the library is unloaded will only return nullptr.
         @param name The name of the symbol
         @return The pointer related to the name or nullptr if not found
         */
@@ -1402,7 +1404,7 @@ public:                                                              \
             0x4a06,
             {0x97, 0xf1, 0x49, 0xbc, 0x2d, 0x2a, 0xb1, 0x4d})
 
-        /* Load a shared library. In typical usage the library name should *not* contain any
+        /** Load a shared library. In typical usage the library name should *not* contain any
         platform specific elements. For example on windows a dll name should *not* be passed with a
         '.dll' extension, and similarly on linux a shared library should *not* be passed with the
         'lib' prefix and '.so' extension
@@ -1417,8 +1419,8 @@ public:                                                              \
     typedef unsigned int SlangPathTypeIntegral;
     enum SlangPathType : SlangPathTypeIntegral
     {
-        SLANG_PATH_TYPE_DIRECTORY, /*< Path specified specifies a directory. */
-        SLANG_PATH_TYPE_FILE,      /*< Path specified is to a file. */
+        SLANG_PATH_TYPE_DIRECTORY, /**< Path specified specifies a directory. */
+        SLANG_PATH_TYPE_FILE,      /**< Path specified is to a file. */
     };
 
     /* Callback to enumerate the contents of of a directory in a ISlangFileSystemExt.
@@ -1469,7 +1471,7 @@ public:                                                              \
         CountOf,
     };
 
-    /* An extended file system abstraction.
+    /** An extended file system abstraction.
 
     Implementing and using this interface over ISlangFileSystem gives much more control over how
     paths are managed, as well as how it is determined if two files 'are the same'.
@@ -1485,7 +1487,7 @@ public:                                                              \
             0x4481,
             {0x9f, 0xee, 0x66, 0x3c, 0x3f, 0x14, 0x49, 0xe1})
 
-        /* Get a uniqueIdentity which uniquely identifies an object of the file system.
+        /** Get a uniqueIdentity which uniquely identifies an object of the file system.
 
         Given a path, returns a 'uniqueIdentity' which ideally is the same value for the same object
         on the file system.
@@ -1520,7 +1522,7 @@ public:                                                              \
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         getFileUniqueIdentity(const char* path, ISlangBlob** outUniqueIdentity) = 0;
 
-        /* Calculate a path combining the 'fromPath' with 'path'
+        /** Calculate a path combining the 'fromPath' with 'path'
 
         The client must ensure the blob be released when no longer used, otherwise memory will leak.
 
@@ -1537,7 +1539,7 @@ public:                                                              \
             const char* path,
             ISlangBlob** pathOut) = 0;
 
-        /* Gets the type of path that path is on the file system.
+        /** Gets the type of path that path is on the file system.
         @param path
         @param pathTypeOut
         @returns SLANG_OK if located and type is known, else an error. SLANG_E_NOT_FOUND if not
@@ -1546,7 +1548,7 @@ public:                                                              \
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         getPathType(const char* path, SlangPathType* pathTypeOut) = 0;
 
-        /* Get a path based on the kind.
+        /** Get a path based on the kind.
 
         @param kind The kind of path wanted
         @param path The input path
@@ -1557,10 +1559,10 @@ public:                                                              \
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         getPath(PathKind kind, const char* path, ISlangBlob** outPath) = 0;
 
-        /* Clears any cached information */
+        /** Clears any cached information */
         virtual SLANG_NO_THROW void SLANG_MCALL clearCache() = 0;
 
-        /* Enumerate the contents of the path
+        /** Enumerate the contents of the path
 
         Note that for normal Slang operation it isn't necessary to enumerate contents this can
         return SLANG_E_NOT_IMPLEMENTED.
@@ -1575,7 +1577,7 @@ public:                                                              \
             FileSystemContentsCallBack callback,
             void* userData) = 0;
 
-        /* Returns how paths map to the OS file system
+        /** Returns how paths map to the OS file system
 
         @returns OSPathKind that describes how paths map to the Operating System file system
         */
@@ -1592,7 +1594,7 @@ public:                                                              \
             0x452a,
             {0x84, 0x58, 0xcc, 0xde, 0xd1, 0x42, 0x71, 0x5})
 
-        /* Write data to the specified path.
+        /** Write data to the specified path.
 
         @param path The path for data to be saved to
         @param data The data to be saved
@@ -1603,7 +1605,7 @@ public:                                                              \
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         saveFile(const char* path, const void* data, size_t size) = 0;
 
-        /* Write data in the form of a blob to the specified path.
+        /** Write data in the form of a blob to the specified path.
 
         Depending on the implementation writing a blob might be faster/use less memory. It is
         assumed the blob is *immutable* and that an implementation can reference count it.
@@ -1619,7 +1621,7 @@ public:                                                              \
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         saveFileBlob(const char* path, ISlangBlob* dataBlob) = 0;
 
-        /* Remove the entry in the path (directory of file). Will only delete an empty directory,
+        /** Remove the entry in the path (directory of file). Will only delete an empty directory,
         if not empty will return an error.
 
         @param path The path to remove
@@ -1627,7 +1629,7 @@ public:                                                              \
         */
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL remove(const char* path) = 0;
 
-        /* Create a directory.
+        /** Create a directory.
 
         The path to the directory must exist
 
@@ -1657,7 +1659,7 @@ public:                                                              \
         SLANG_WRITER_MODE_BINARY,
     };
 
-    /* A stream typically of text, used for outputting diagnostic as well as other information.
+    /** A stream typically of text, used for outputting diagnostic as well as other information.
      */
     struct ISlangWriter : public ISlangUnknown
     {
@@ -1667,12 +1669,12 @@ public:                                                              \
             0x4e6b,
             {0x85, 0x1c, 0xd7, 0xfa, 0x71, 0x6d, 0x15, 0xfd})
 
-        /* Begin an append buffer.
+        /** Begin an append buffer.
         NOTE! Only one append buffer can be active at any time.
         @param maxNumChars The maximum of chars that will be appended
         @returns The start of the buffer for appending to. */
         virtual SLANG_NO_THROW char* SLANG_MCALL beginAppendBuffer(size_t maxNumChars) = 0;
-        /* Ends the append buffer, and is equivalent to a write of the append buffer.
+        /** Ends the append buffer, and is equivalent to a write of the append buffer.
         NOTE! That an endAppendBuffer is not necessary if there are no characters to write.
         @param buffer is the start of the data to append and must be identical to last value
         returned from beginAppendBuffer
@@ -1681,18 +1683,18 @@ public:                                                              \
         @returns Result, will be SLANG_OK on success */
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         endAppendBuffer(char* buffer, size_t numChars) = 0;
-        /* Write text to the writer
+        /** Write text to the writer
         @param chars The characters to write out
         @param numChars The amount of characters
         @returns SLANG_OK on success */
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL
         write(const char* chars, size_t numChars) = 0;
-        /* Flushes any content to the output */
+        /** Flushes any content to the output */
         virtual SLANG_NO_THROW void SLANG_MCALL flush() = 0;
-        /* Determines if the writer stream is to the console, and can be used to alter the output
+        /** Determines if the writer stream is to the console, and can be used to alter the output
         @returns Returns true if is a console writer */
         virtual SLANG_NO_THROW SlangBool SLANG_MCALL isConsole() = 0;
-        /* Set the mode for the writer to use
+        /** Set the mode for the writer to use
         @param mode The mode to use
         @returns SLANG_OK on success */
         virtual SLANG_NO_THROW SlangResult SLANG_MCALL setMode(SlangWriterMode mode) = 0;
@@ -1774,6 +1776,7 @@ public:                                                              \
     typedef struct SlangReflectionVariableLayout SlangReflectionVariableLayout;
     typedef struct SlangReflectionTypeParameter SlangReflectionTypeParameter;
     typedef struct SlangReflectionUserAttribute SlangReflectionUserAttribute;
+    typedef SlangReflectionUserAttribute SlangReflectionAttribute;
     typedef struct SlangReflectionFunction SlangReflectionFunction;
     typedef struct SlangReflectionGeneric SlangReflectionGeneric;
 
@@ -1956,14 +1959,14 @@ public:                                                              \
         // This `MyParams` type introduces two existential type parameters:
         // one for `material` and one for `lights`. Even though `lights`
         // is an array, it only introduces one type parameter, because
-        // we need to hae a *single* concrete type for all the array
+        // we need to have a *single* concrete type for all the array
         // elements to be able to generate specialized code.
         //
         SLANG_PARAMETER_CATEGORY_EXISTENTIAL_TYPE_PARAM,
 
         // An existential object parameter represents a value
         // that needs to be passed in to provide data for some
-        // interface-type shader paameter.
+        // interface-type shader parameter.
         //
         // Consider this example:
         //
@@ -2009,7 +2012,7 @@ public:                                                              \
         SLANG_PARAMETER_CATEGORY_COUNT_V1 = SLANG_PARAMETER_CATEGORY_SUBPASS,
     };
 
-    /* Types of API-managed bindings that a parameter might use.
+    /** Types of API-managed bindings that a parameter might use.
 
     `SlangBindingType` represents the distinct types of binding ranges that might be
     understood by an underlying graphics API or cross-API abstraction layer.
@@ -2023,13 +2026,13 @@ public:                                                              \
     parameters of different types as occupying the same binding space for layout
     (e.g., in SPIR-V both a `Texture2D` and `SamplerState` use the same space of
     `binding` indices, and are not allowed to overlap), while those same types
-    map to different types of bindingsin the API (e.g., both textures and samplers
+    map to different types of bindings in the API (e.g., both textures and samplers
     use different `VkDescriptorType` values).
 
     When you want to answer "what register/binding did this parameter use?" you
     should use `SlangParameterCategory`.
 
-    When you wnat to answer "what type of descriptor range should this parameter use?"
+    When you want to answer "what type of descriptor range should this parameter use?"
     you should use `SlangBindingType`.
     */
     typedef SlangUInt32 SlangBindingTypeIntegral;
@@ -2138,45 +2141,47 @@ union GenericArgReflection
     bool boolVal;
 };
 
-struct UserAttribute
+struct Attribute
 {
     char const* getName()
     {
-        return spReflectionUserAttribute_GetName((SlangReflectionUserAttribute*)this);
+        return spReflectionUserAttribute_GetName((SlangReflectionAttribute*)this);
     }
     uint32_t getArgumentCount()
     {
         return (uint32_t)spReflectionUserAttribute_GetArgumentCount(
-            (SlangReflectionUserAttribute*)this);
+            (SlangReflectionAttribute*)this);
     }
     TypeReflection* getArgumentType(uint32_t index)
     {
         return (TypeReflection*)spReflectionUserAttribute_GetArgumentType(
-            (SlangReflectionUserAttribute*)this,
+            (SlangReflectionAttribute*)this,
             index);
     }
     SlangResult getArgumentValueInt(uint32_t index, int* value)
     {
         return spReflectionUserAttribute_GetArgumentValueInt(
-            (SlangReflectionUserAttribute*)this,
+            (SlangReflectionAttribute*)this,
             index,
             value);
     }
     SlangResult getArgumentValueFloat(uint32_t index, float* value)
     {
         return spReflectionUserAttribute_GetArgumentValueFloat(
-            (SlangReflectionUserAttribute*)this,
+            (SlangReflectionAttribute*)this,
             index,
             value);
     }
     const char* getArgumentValueString(uint32_t index, size_t* outSize)
     {
         return spReflectionUserAttribute_GetArgumentValueString(
-            (SlangReflectionUserAttribute*)this,
+            (SlangReflectionAttribute*)this,
             index,
             outSize);
     }
 };
+
+typedef Attribute UserAttribute;
 
 struct TypeReflection
 {
@@ -2318,12 +2323,14 @@ struct TypeReflection
         return (UserAttribute*)spReflectionType_GetUserAttribute((SlangReflectionType*)this, index);
     }
 
-    UserAttribute* findUserAttributeByName(char const* name)
+    UserAttribute* findAttributeByName(char const* name)
     {
         return (UserAttribute*)spReflectionType_FindUserAttributeByName(
             (SlangReflectionType*)this,
             name);
     }
+
+    UserAttribute* findUserAttributeByName(char const* name) { return findAttributeByName(name); }
 
     TypeReflection* applySpecializations(GenericReflection* generic)
     {
@@ -2775,19 +2782,24 @@ struct VariableReflection
         return spReflectionVariable_GetUserAttributeCount((SlangReflectionVariable*)this);
     }
 
-    UserAttribute* getUserAttributeByIndex(unsigned int index)
+    Attribute* getUserAttributeByIndex(unsigned int index)
     {
         return (UserAttribute*)spReflectionVariable_GetUserAttribute(
             (SlangReflectionVariable*)this,
             index);
     }
 
-    UserAttribute* findUserAttributeByName(SlangSession* globalSession, char const* name)
+    Attribute* findAttributeByName(SlangSession* globalSession, char const* name)
     {
         return (UserAttribute*)spReflectionVariable_FindUserAttributeByName(
             (SlangReflectionVariable*)this,
             globalSession,
             name);
+    }
+
+    Attribute* findUserAttributeByName(SlangSession* globalSession, char const* name)
+    {
+        return findAttributeByName(globalSession, name);
     }
 
     bool hasDefaultValue()
@@ -2906,20 +2918,22 @@ struct FunctionReflection
     {
         return spReflectionFunction_GetUserAttributeCount((SlangReflectionFunction*)this);
     }
-    UserAttribute* getUserAttributeByIndex(unsigned int index)
+    Attribute* getUserAttributeByIndex(unsigned int index)
     {
-        return (UserAttribute*)spReflectionFunction_GetUserAttribute(
-            (SlangReflectionFunction*)this,
-            index);
+        return (
+            Attribute*)spReflectionFunction_GetUserAttribute((SlangReflectionFunction*)this, index);
     }
-    UserAttribute* findUserAttributeByName(SlangSession* globalSession, char const* name)
+    Attribute* findAttributeByName(SlangSession* globalSession, char const* name)
     {
-        return (UserAttribute*)spReflectionFunction_FindUserAttributeByName(
+        return (Attribute*)spReflectionFunction_FindUserAttributeByName(
             (SlangReflectionFunction*)this,
             globalSession,
             name);
     }
-
+    Attribute* findUserAttributeByName(SlangSession* globalSession, char const* name)
+    {
+        return findAttributeByName(globalSession, name);
+    }
     Modifier* findModifier(Modifier::ID id)
     {
         return (Modifier*)spReflectionFunction_FindModifier(
@@ -3320,6 +3334,11 @@ struct ShaderReflection
         return (VariableLayoutReflection*)spReflection_getGlobalParamsVarLayout(
             (SlangReflection*)this);
     }
+
+    SlangResult toJson(ISlangBlob** outBlob)
+    {
+        return spReflection_ToJson((SlangReflection*)this, nullptr, outBlob);
+    }
 };
 
 
@@ -3464,7 +3483,7 @@ struct SessionDesc;
 struct SpecializationArg;
 struct TargetDesc;
 
-/* A global session for interaction with the Slang library.
+/** A global session for interaction with the Slang library.
 
 An application may create and re-use a single global session across
 multiple sessions, in order to amortize startups costs (in current
@@ -3478,12 +3497,12 @@ struct IGlobalSession : public ISlangUnknown
 {
     SLANG_COM_INTERFACE(0xc140b5fd, 0xc78, 0x452e, {0xba, 0x7c, 0x1a, 0x1e, 0x70, 0xc7, 0xf7, 0x1c})
 
-    /* Create a new session for loading and compiling code.
+    /** Create a new session for loading and compiling code.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     createSession(SessionDesc const& desc, ISession** outSession) = 0;
 
-    /* Look up the internal ID of a profile by its `name`.
+    /** Look up the internal ID of a profile by its `name`.
 
     Profile IDs are *not* guaranteed to be stable across versions
     of the Slang library, so clients are expected to look up
@@ -3491,7 +3510,7 @@ struct IGlobalSession : public ISlangUnknown
     */
     virtual SLANG_NO_THROW SlangProfileID SLANG_MCALL findProfile(char const* name) = 0;
 
-    /* Set the path that downstream compilers (aka back end compilers) will
+    /** Set the path that downstream compilers (aka back end compilers) will
     be looked from.
     @param passThrough Identifies the downstream compiler
     @param path The path to find the downstream compiler (shared library/dll/executable)
@@ -3502,7 +3521,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     setDownstreamCompilerPath(SlangPassThrough passThrough, char const* path) = 0;
 
-    /* DEPRECATED: Use setLanguagePrelude
+    /** DEPRECATED: Use setLanguagePrelude
 
     Set the 'prelude' for generated code for a 'downstream compiler'.
     @param passThrough The downstream compiler for generated code that will have the prelude applied
@@ -3514,7 +3533,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     setDownstreamCompilerPrelude(SlangPassThrough passThrough, const char* preludeText) = 0;
 
-    /* DEPRECATED: Use getLanguagePrelude
+    /** DEPRECATED: Use getLanguagePrelude
 
     Get the 'prelude' for generated code for a 'downstream compiler'.
     @param passThrough The downstream compiler for generated code that will have the prelude applied
@@ -3524,7 +3543,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     getDownstreamCompilerPrelude(SlangPassThrough passThrough, ISlangBlob** outPrelude) = 0;
 
-    /* Get the build version 'tag' string. The string is the same as produced via `git describe
+    /** Get the build version 'tag' string. The string is the same as produced via `git describe
     --tags` for the project. If Slang is built separately from the automated build scripts the
     contents will by default be 'unknown'. Any string can be set by changing the contents of
     'slang-tag-version.h' file and recompiling the project.
@@ -3565,36 +3584,36 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     setLanguagePrelude(SlangSourceLanguage sourceLanguage, const char* preludeText) = 0;
 
-    /* Get the 'prelude' associated with a specific source language.
+    /** Get the 'prelude' associated with a specific source language.
     @param sourceLanguage The language the prelude should be inserted on.
     @param outPrelude  On exit holds a blob that holds the string of the prelude.
     */
     virtual SLANG_NO_THROW void SLANG_MCALL
     getLanguagePrelude(SlangSourceLanguage sourceLanguage, ISlangBlob** outPrelude) = 0;
 
-    /* Create a compile request.
+    /** Create a compile request.
      */
     [[deprecated]] virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     createCompileRequest(slang::ICompileRequest** outCompileRequest) = 0;
 
-    /* Add new builtin declarations to be used in subsequent compiles.
+    /** Add new builtin declarations to be used in subsequent compiles.
      */
     virtual SLANG_NO_THROW void SLANG_MCALL
     addBuiltins(char const* sourcePath, char const* sourceString) = 0;
 
-    /* Set the session shared library loader. If this changes the loader, it may cause shared
+    /** Set the session shared library loader. If this changes the loader, it may cause shared
     libraries to be unloaded
     @param loader The loader to set. Setting nullptr sets the default loader.
     */
     virtual SLANG_NO_THROW void SLANG_MCALL
     setSharedLibraryLoader(ISlangSharedLibraryLoader* loader) = 0;
 
-    /* Gets the currently set shared library loader
+    /** Gets the currently set shared library loader
     @return Gets the currently set loader. If returns nullptr, it's the default loader
     */
     virtual SLANG_NO_THROW ISlangSharedLibraryLoader* SLANG_MCALL getSharedLibraryLoader() = 0;
 
-    /* Returns SLANG_OK if a the compilation target is supported for this session
+    /** Returns SLANG_OK if the compilation target is supported for this session
 
     @param target The compilation target to test
     @return SLANG_OK if the target is available
@@ -3604,7 +3623,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     checkCompileTargetSupport(SlangCompileTarget target) = 0;
 
-    /* Returns SLANG_OK if a the pass through support is supported for this session
+    /** Returns SLANG_OK if the pass through support is supported for this session
     @param session Session
     @param target The compilation target to test
     @return SLANG_OK if the target is available
@@ -3614,7 +3633,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     checkPassThroughSupport(SlangPassThrough passThrough) = 0;
 
-    /* Compile from (embedded source) the core module on the session.
+    /** Compile from (embedded source) the core module on the session.
     Will return a failure if there is already a core module available
     NOTE! API is experimental and not ready for production code
     @param flags to control compilation
@@ -3622,7 +3641,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     compileCoreModule(CompileCoreModuleFlags flags) = 0;
 
-    /* Load the core module. Currently loads modules from the file system.
+    /** Load the core module. Currently loads modules from the file system.
     @param coreModule Start address of the serialized core module
     @param coreModuleSizeInBytes The size in bytes of the serialized core module
 
@@ -3631,7 +3650,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     loadCoreModule(const void* coreModule, size_t coreModuleSizeInBytes) = 0;
 
-    /* Save the core module to the file system
+    /** Save the core module to the file system
     @param archiveType The type of archive used to hold the core module
     @param outBlob The serialized blob containing the core module
 
@@ -3639,7 +3658,7 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     saveCoreModule(SlangArchiveType archiveType, ISlangBlob** outBlob) = 0;
 
-    /* Look up the internal ID of a capability by its `name`.
+    /** Look up the internal ID of a capability by its `name`.
 
     Capability IDs are *not* guaranteed to be stable across versions
     of the Slang library, so clients are expected to look up
@@ -3647,7 +3666,7 @@ struct IGlobalSession : public ISlangUnknown
     */
     virtual SLANG_NO_THROW SlangCapabilityID SLANG_MCALL findCapability(char const* name) = 0;
 
-    /* Set the downstream/pass through compiler to be used for a transition from the source type to
+    /** Set the downstream/pass through compiler to be used for a transition from the source type to
     the target type
     @param source The source 'code gen target'
     @param target The target 'code gen target'
@@ -3658,7 +3677,7 @@ struct IGlobalSession : public ISlangUnknown
         SlangCompileTarget target,
         SlangPassThrough compiler) = 0;
 
-    /* Get the downstream/pass through compiler for a transition specified by source and target
+    /** Get the downstream/pass through compiler for a transition specified by source and target
     @param source The source 'code gen target'
     @param target The target 'code gen target'
     @return The compiler that is used for the transition. Returns SLANG_PASS_THROUGH_NONE it is not
@@ -3667,22 +3686,22 @@ struct IGlobalSession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangPassThrough SLANG_MCALL
     getDownstreamCompilerForTransition(SlangCompileTarget source, SlangCompileTarget target) = 0;
 
-    /* Get the time in seconds spent in the slang and downstream compiler.
+    /** Get the time in seconds spent in the slang and downstream compiler.
      */
     virtual SLANG_NO_THROW void SLANG_MCALL
     getCompilerElapsedTime(double* outTotalTime, double* outDownstreamTime) = 0;
 
-    /* Specify a spirv.core.grammar.json file to load and use when
+    /** Specify a spirv.core.grammar.json file to load and use when
      * parsing and checking any SPIR-V code
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL setSPIRVCoreGrammar(char const* jsonPath) = 0;
 
-    /* Parse slangc command line options into a SessionDesc that can be used to create a session
+    /** Parse slangc command line options into a SessionDesc that can be used to create a session
      *   with all the compiler options specified in the command line.
      *   @param argc The number of command line arguments.
      *   @param argv An input array of command line arguments to parse.
      *   @param outSessionDesc A pointer to a SessionDesc struct to receive parsed session desc.
-     *   @param outAuxAllocation Auxillary memory allocated to hold data used in the sesion desc.
+     *   @param outAuxAllocation Auxiliary memory allocated to hold data used in the session desc.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL parseCommandLineArguments(
         int argc,
@@ -3690,7 +3709,7 @@ struct IGlobalSession : public ISlangUnknown
         SessionDesc* outSessionDesc,
         ISlangUnknown** outAuxAllocation) = 0;
 
-    /* Computes a digest that uniquely identifies the session description.
+    /** Computes a digest that uniquely identifies the session description.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getSessionDescDigest(SessionDesc* sessionDesc, ISlangBlob** outBlob) = 0;
@@ -3698,42 +3717,42 @@ struct IGlobalSession : public ISlangUnknown
 
     #define SLANG_UUID_IGlobalSession IGlobalSession::getTypeGuid()
 
-/* Description of a code generation target.
+/** Description of a code generation target.
  */
 struct TargetDesc
 {
-    /* The size of this structure, in bytes.
+    /** The size of this structure, in bytes.
      */
     size_t structureSize = sizeof(TargetDesc);
 
-    /* The target format to generate code for (e.g., SPIR-V, DXIL, etc.)
+    /** The target format to generate code for (e.g., SPIR-V, DXIL, etc.)
      */
     SlangCompileTarget format = SLANG_TARGET_UNKNOWN;
 
-    /* The compilation profile supported by the target (e.g., "Shader Model 5.1")
+    /** The compilation profile supported by the target (e.g., "Shader Model 5.1")
      */
     SlangProfileID profile = SLANG_PROFILE_UNKNOWN;
 
-    /* Flags for the code generation target. Currently unused. */
+    /** Flags for the code generation target. Currently unused. */
     SlangTargetFlags flags = kDefaultTargetFlags;
 
-    /* Default mode to use for floating-point operations on the target.
+    /** Default mode to use for floating-point operations on the target.
      */
     SlangFloatingPointMode floatingPointMode = SLANG_FLOATING_POINT_MODE_DEFAULT;
 
-    /* The line directive mode for output source code.
+    /** The line directive mode for output source code.
      */
     SlangLineDirectiveMode lineDirectiveMode = SLANG_LINE_DIRECTIVE_MODE_DEFAULT;
 
-    /* Whether to force `scalar` layout for glsl shader storage buffers.
+    /** Whether to force `scalar` layout for glsl shader storage buffers.
      */
     bool forceGLSLScalarBufferLayout = false;
 
-    /* Pointer to an array of compiler option entries, whose size is compilerOptionEntryCount.
+    /** Pointer to an array of compiler option entries, whose size is compilerOptionEntryCount.
      */
     CompilerOptionEntry* compilerOptionEntries = nullptr;
 
-    /* Number of additional compiler option entries.
+    /** Number of additional compiler option entries.
      */
     uint32_t compilerOptionEntryCount = 0;
 };
@@ -3752,24 +3771,24 @@ struct PreprocessorMacroDesc
 
 struct SessionDesc
 {
-    /* The size of this structure, in bytes.
+    /** The size of this structure, in bytes.
      */
     size_t structureSize = sizeof(SessionDesc);
 
-    /* Code generation targets to include in the session.
+    /** Code generation targets to include in the session.
      */
     TargetDesc const* targets = nullptr;
     SlangInt targetCount = 0;
 
-    /* Flags to configure the session.
+    /** Flags to configure the session.
      */
     SessionFlags flags = kSessionFlags_None;
 
-    /* Default layout to assume for variables with matrix types.
+    /** Default layout to assume for variables with matrix types.
      */
     SlangMatrixLayoutMode defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_ROW_MAJOR;
 
-    /* Paths to use when searching for `#include`d or `import`ed files.
+    /** Paths to use when searching for `#include`d or `import`ed files.
      */
     char const* const* searchPaths = nullptr;
     SlangInt searchPathCount = 0;
@@ -3782,11 +3801,11 @@ struct SessionDesc
     bool enableEffectAnnotations = false;
     bool allowGLSLSyntax = false;
 
-    /* Pointer to an array of compiler option entries, whose size is compilerOptionEntryCount.
+    /** Pointer to an array of compiler option entries, whose size is compilerOptionEntryCount.
      */
     CompilerOptionEntry* compilerOptionEntries = nullptr;
 
-    /* Number of additional compiler option entries.
+    /** Number of additional compiler option entries.
      */
     uint32_t compilerOptionEntryCount = 0;
 };
@@ -3800,7 +3819,7 @@ enum class ContainerType
     ParameterBlock
 };
 
-/* A session provides a scope for code that is loaded.
+/** A session provides a scope for code that is loaded.
 
 A session can be used to load modules of Slang source code,
 and to request target-specific compiled binaries and layout
@@ -3808,7 +3827,7 @@ information.
 
 In order to be able to load code, the session owns a set
 of active "search paths" for resolving `#include` directives
-and `import` declrations, as well as a set of global
+and `import` declarations, as well as a set of global
 preprocessor definitions that will be used for all code
 that gets `import`ed in the session.
 
@@ -3829,16 +3848,16 @@ struct ISession : public ISlangUnknown
 {
     SLANG_COM_INTERFACE(0x67618701, 0xd116, 0x468f, {0xab, 0x3b, 0x47, 0x4b, 0xed, 0xce, 0xe, 0x3d})
 
-    /* Get the global session thas was used to create this session.
+    /** Get the global session thas was used to create this session.
      */
     virtual SLANG_NO_THROW IGlobalSession* SLANG_MCALL getGlobalSession() = 0;
 
-    /* Load a module as it would be by code using `import`.
+    /** Load a module as it would be by code using `import`.
      */
     virtual SLANG_NO_THROW IModule* SLANG_MCALL
     loadModule(const char* moduleName, IBlob** outDiagnostics = nullptr) = 0;
 
-    /* Load a module from Slang source code.
+    /** Load a module from Slang source code.
      */
     virtual SLANG_NO_THROW IModule* SLANG_MCALL loadModuleFromSource(
         const char* moduleName,
@@ -3846,7 +3865,7 @@ struct ISession : public ISlangUnknown
         slang::IBlob* source,
         slang::IBlob** outDiagnostics = nullptr) = 0;
 
-    /* Combine multiple component types to create a composite component type.
+    /** Combine multiple component types to create a composite component type.
 
     The `componentTypes` array must contain `componentTypeCount` pointers
     to component types that were loaded or created using the same session.
@@ -3873,7 +3892,7 @@ struct ISession : public ISlangUnknown
     function will return null.
 
     It is an error to create a composite component type that recursively
-    aggregates the a single module more than once.
+    aggregates a single module more than once.
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL createCompositeComponentType(
         IComponentType* const* componentTypes,
@@ -3881,7 +3900,7 @@ struct ISession : public ISlangUnknown
         IComponentType** outCompositeComponentType,
         ISlangBlob** outDiagnostics = nullptr) = 0;
 
-    /* Specialize a type based on type arguments.
+    /** Specialize a type based on type arguments.
      */
     virtual SLANG_NO_THROW TypeReflection* SLANG_MCALL specializeType(
         TypeReflection* type,
@@ -3890,7 +3909,7 @@ struct ISession : public ISlangUnknown
         ISlangBlob** outDiagnostics = nullptr) = 0;
 
 
-    /* Get the layout `type` on the chosen `target`.
+    /** Get the layout `type` on the chosen `target`.
      */
     virtual SLANG_NO_THROW TypeLayoutReflection* SLANG_MCALL getTypeLayout(
         TypeReflection* type,
@@ -3898,7 +3917,7 @@ struct ISession : public ISlangUnknown
         LayoutRules rules = LayoutRules::Default,
         ISlangBlob** outDiagnostics = nullptr) = 0;
 
-    /* Get a container type from `elementType`. For example, given type `T`, returns
+    /** Get a container type from `elementType`. For example, given type `T`, returns
         a type that represents `StructuredBuffer<T>`.
 
         @param `elementType`: the element type to wrap around.
@@ -3910,43 +3929,43 @@ struct ISession : public ISlangUnknown
         ContainerType containerType,
         ISlangBlob** outDiagnostics = nullptr) = 0;
 
-    /* Return a `TypeReflection` that represents the `__Dynamic` type.
+    /** Return a `TypeReflection` that represents the `__Dynamic` type.
         This type can be used as a specialization argument to indicate using
         dynamic dispatch.
     */
     virtual SLANG_NO_THROW TypeReflection* SLANG_MCALL getDynamicType() = 0;
 
-    /* Get the mangled name for a type RTTI object.
+    /** Get the mangled name for a type RTTI object.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getTypeRTTIMangledName(TypeReflection* type, ISlangBlob** outNameBlob) = 0;
 
-    /* Get the mangled name for a type witness.
+    /** Get the mangled name for a type witness.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL getTypeConformanceWitnessMangledName(
         TypeReflection* type,
         TypeReflection* interfaceType,
         ISlangBlob** outNameBlob) = 0;
 
-    /* Get the sequential ID used to identify a type witness in a dynamic object.
+    /** Get the sequential ID used to identify a type witness in a dynamic object.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL getTypeConformanceWitnessSequentialID(
         slang::TypeReflection* type,
         slang::TypeReflection* interfaceType,
         uint32_t* outId) = 0;
 
-    /* Create a request to load/compile front-end code.
+    /** Create a request to load/compile front-end code.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     createCompileRequest(SlangCompileRequest** outCompileRequest) = 0;
 
 
-    /* Creates a `IComponentType` that represents a type's conformance to an interface.
+    /** Creates a `IComponentType` that represents a type's conformance to an interface.
         The retrieved `ITypeConformance` objects can be included in a composite `IComponentType`
         to explicitly specify which implementation types should be included in the final compiled
         code. For example, if an module defines `IMaterial` interface and `AMaterial`,
         `BMaterial`, `CMaterial` types that implements the interface, the user can exclude
-        `CMaterial` implementation from the resulting shader code by explcitly adding
+        `CMaterial` implementation from the resulting shader code by explicitly adding
         `AMaterial:IMaterial` and `BMaterial:IMaterial` conformances to a composite
         `IComponentType` and get entry point code from it. The resulting code will not have
         anything related to `CMaterial` in the dynamic dispatch logic. If the user does not
@@ -3966,7 +3985,7 @@ struct ISession : public ISlangUnknown
         SlangInt conformanceIdOverride,
         ISlangBlob** outDiagnostics) = 0;
 
-    /* Load a module from a Slang module blob.
+    /** Load a module from a Slang module blob.
      */
     virtual SLANG_NO_THROW IModule* SLANG_MCALL loadModuleFromIRBlob(
         const char* moduleName,
@@ -3977,13 +3996,13 @@ struct ISession : public ISlangUnknown
     virtual SLANG_NO_THROW SlangInt SLANG_MCALL getLoadedModuleCount() = 0;
     virtual SLANG_NO_THROW IModule* SLANG_MCALL getLoadedModule(SlangInt index) = 0;
 
-    /* Checks if a precompiled binary module is up-to-date with the current compiler
+    /** Checks if a precompiled binary module is up-to-date with the current compiler
      *   option settings and the source file contents.
      */
     virtual SLANG_NO_THROW bool SLANG_MCALL
     isBinaryModuleUpToDate(const char* modulePath, slang::IBlob* binaryModuleBlob) = 0;
 
-    /* Load a module from a string.
+    /** Load a module from a string.
      */
     virtual SLANG_NO_THROW IModule* SLANG_MCALL loadModuleFromSourceString(
         const char* moduleName,
@@ -3999,7 +4018,7 @@ struct IMetadata : public ISlangCastable
     SLANG_COM_INTERFACE(0x8044a8a3, 0xddc0, 0x4b7f, {0xaf, 0x8e, 0x2, 0x6e, 0x90, 0x5d, 0x73, 0x32})
 
     /*
-    Returns whether a resource parameter at the specifieid binding location is actually being used
+    Returns whether a resource parameter at the specified binding location is actually being used
     in the compiled shader.
     */
     virtual SlangResult isParameterLocationUsed(
@@ -4010,7 +4029,7 @@ struct IMetadata : public ISlangCastable
 };
     #define SLANG_UUID_IMetadata IMetadata::getTypeGuid()
 
-/* A component type is a unit of shader code layout, reflection, and linking.
+/** A component type is a unit of shader code layout, reflection, and linking.
 
 A component type is a unit of shader code that can be included into
 a linked and compiled shader program. Each component type may have:
@@ -4075,11 +4094,11 @@ struct IComponentType : public ISlangUnknown
 {
     SLANG_COM_INTERFACE(0x5bc42be8, 0x5c50, 0x4929, {0x9e, 0x5e, 0xd1, 0x5e, 0x7c, 0x24, 0x1, 0x5f})
 
-    /* Get the runtime session that this component type belongs to.
+    /** Get the runtime session that this component type belongs to.
      */
     virtual SLANG_NO_THROW ISession* SLANG_MCALL getSession() = 0;
 
-    /* Get the layout for this program for the chosen `targetIndex`.
+    /** Get the layout for this program for the chosen `targetIndex`.
 
     The resulting layout will establish offsets/bindings for all
     of the global and entry-point shader parameters in the
@@ -4105,11 +4124,11 @@ struct IComponentType : public ISlangUnknown
     virtual SLANG_NO_THROW ProgramLayout* SLANG_MCALL
     getLayout(SlangInt targetIndex = 0, IBlob** outDiagnostics = nullptr) = 0;
 
-    /* Get the number of (unspecialized) specialization parameters for the component type.
+    /** Get the number of (unspecialized) specialization parameters for the component type.
      */
     virtual SLANG_NO_THROW SlangInt SLANG_MCALL getSpecializationParamCount() = 0;
 
-    /* Get the compiled code for the entry point at `entryPointIndex` for the chosen `targetIndex`
+    /** Get the compiled code for the entry point at `entryPointIndex` for the chosen `targetIndex`
 
     Entry point code can only be computed for a component type that
     has no specialization parameters (it must be fully specialized)
@@ -4125,11 +4144,11 @@ struct IComponentType : public ISlangUnknown
         IBlob** outCode,
         IBlob** outDiagnostics = nullptr) = 0;
 
-    /* Get the compilation result as a file system.
+    /** Get the compilation result as a file system.
 
     Has the same requirements as getEntryPointCode.
 
-    The result is not written to the actual OS file system, but is made avaiable as an
+    The result is not written to the actual OS file system, but is made available as an
     in memory representation.
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL getResultAsFileSystem(
@@ -4137,7 +4156,7 @@ struct IComponentType : public ISlangUnknown
         SlangInt targetIndex,
         ISlangMutableFileSystem** outFileSystem) = 0;
 
-    /* Compute a hash for the entry point at `entryPointIndex` for the chosen `targetIndex`.
+    /** Compute a hash for the entry point at `entryPointIndex` for the chosen `targetIndex`.
 
     This computes a hash based on all the dependencies for this component type as well as the
     target settings affecting the compiler backend. The computed hash is used as a key for caching
@@ -4146,7 +4165,7 @@ struct IComponentType : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     getEntryPointHash(SlangInt entryPointIndex, SlangInt targetIndex, IBlob** outHash) = 0;
 
-    /* Specialize the component by binding its specialization parameters to concrete arguments.
+    /** Specialize the component by binding its specialization parameters to concrete arguments.
 
     The `specializationArgs` array must have `specializationArgCount` entries, and
     this must match the number of specialization parameters on this component type.
@@ -4159,7 +4178,7 @@ struct IComponentType : public ISlangUnknown
         IComponentType** outSpecializedComponentType,
         ISlangBlob** outDiagnostics = nullptr) = 0;
 
-    /* Link this component type against all of its unsatisifed dependencies.
+    /** Link this component type against all of its unsatisfied dependencies.
 
     A component type may have unsatisfied dependencies. For example, a module
     depends on any other modules it `import`s, and an entry point depends
@@ -4172,7 +4191,7 @@ struct IComponentType : public ISlangUnknown
     It is an error to try to generate/access compiled kernel code for
     a component type with unresolved dependencies, so if dependencies
     remain after whatever manual composition steps an application
-    cares to peform, the `link()` function can be used to automatically
+    cares to perform, the `link()` function can be used to automatically
     compose in any remaining dependencies. The order of parameters
     (and hence the global layout) that results will be deterministic,
     but is not currently documented.
@@ -4180,7 +4199,7 @@ struct IComponentType : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     link(IComponentType** outLinkedComponentType, ISlangBlob** outDiagnostics = nullptr) = 0;
 
-    /* Get entry point 'callable' functions accessible through the ISlangSharedLibrary interface.
+    /** Get entry point 'callable' functions accessible through the ISlangSharedLibrary interface.
 
     The functions remain in scope as long as the ISlangSharedLibrary interface is in scope.
 
@@ -4198,7 +4217,7 @@ struct IComponentType : public ISlangUnknown
         ISlangSharedLibrary** outSharedLibrary,
         slang::IBlob** outDiagnostics = 0) = 0;
 
-    /* Get a new ComponentType object that represents a renamed entry point.
+    /** Get a new ComponentType object that represents a renamed entry point.
 
     The current object must be a single EntryPoint, or a CompositeComponentType or
     SpecializedComponentType that contains one EntryPoint component.
@@ -4206,7 +4225,7 @@ struct IComponentType : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     renameEntryPoint(const char* newName, IComponentType** outEntryPoint) = 0;
 
-    /* Link and specify additional compiler options when generating code
+    /** Link and specify additional compiler options when generating code
      *   from the linked program.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL linkWithOptions(
@@ -4246,7 +4265,7 @@ struct ITypeConformance : public IComponentType
 };
     #define SLANG_UUID_ITypeConformance ITypeConformance::getTypeGuid()
 
-/* A module is the granularity of shader code compilation and loading.
+/** A module is the granularity of shader code compilation and loading.
 
 In most cases a module corresponds to a single compile "translation unit."
 This will often be a single `.slang` or `.hlsl` file and everything it
@@ -4341,21 +4360,21 @@ struct IModulePrecompileService_Experimental : public ISlangUnknown
     #define SLANG_UUID_IModulePrecompileService_Experimental \
         IModulePrecompileService_Experimental::getTypeGuid()
 
-/* Argument used for specialization to types/values.
+/** Argument used for specialization to types/values.
  */
 struct SpecializationArg
 {
     enum class Kind : int32_t
     {
-        Unknown, /*< An invalid specialization argument. */
-        Type,    /*< Specialize to a type. */
+        Unknown, /**< An invalid specialization argument. */
+        Type,    /**< Specialize to a type. */
     };
 
-    /* The kind of specialization argument. */
+    /** The kind of specialization argument. */
     Kind kind;
     union
     {
-        /* A type specialization argument, used for `Kind::Type`. */
+        /** A type specialization argument, used for `Kind::Type`. */
         TypeReflection* type;
     };
 
@@ -4408,6 +4427,10 @@ SLANG_API ISlangBlob* slang_getEmbeddedCoreModule();
  */
 SLANG_EXTERN_C SLANG_API void slang_shutdown();
 
+/* Return the last signaled internal error message.
+ */
+SLANG_EXTERN_C SLANG_API const char* slang_getLastInternalErrorMessage();
+
 namespace slang
 {
 inline SlangResult createGlobalSession(slang::IGlobalSession** outGlobalSession)
@@ -4417,6 +4440,10 @@ inline SlangResult createGlobalSession(slang::IGlobalSession** outGlobalSession)
 inline void shutdown()
 {
     slang_shutdown();
+}
+inline const char* getLastInternalErrorMessage()
+{
+    return slang_getLastInternalErrorMessage();
 }
 } // namespace slang
 

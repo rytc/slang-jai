@@ -25,27 +25,27 @@ extern "C"
     */
     SLANG_API void spDestroySession(SlangSession* session);
 
-    /* @see slang::IGlobalSession::setSharedLibraryLoader
+    /** @see slang::IGlobalSession::setSharedLibraryLoader
      */
     SLANG_API void spSessionSetSharedLibraryLoader(
         SlangSession* session,
         ISlangSharedLibraryLoader* loader);
 
-    /* @see slang::IGlobalSession::getSharedLibraryLoader
+    /** @see slang::IGlobalSession::getSharedLibraryLoader
      */
     SLANG_API ISlangSharedLibraryLoader* spSessionGetSharedLibraryLoader(SlangSession* session);
 
-    /* @see slang::IGlobalSession::checkCompileTargetSupport
+    /** @see slang::IGlobalSession::checkCompileTargetSupport
      */
     SLANG_API SlangResult
     spSessionCheckCompileTargetSupport(SlangSession* session, SlangCompileTarget target);
 
-    /* @see slang::IGlobalSession::checkPassThroughSupport
+    /** @see slang::IGlobalSession::checkPassThroughSupport
      */
     SLANG_API SlangResult
     spSessionCheckPassThroughSupport(SlangSession* session, SlangPassThrough passThrough);
 
-    /* @see slang::IGlobalSession::addBuiltins
+    /** @see slang::IGlobalSession::addBuiltins
      */
     SLANG_API void spAddBuiltins(
         SlangSession* session,
@@ -101,7 +101,7 @@ extern "C"
         int targetIndex,
         bool val);
 
-    /*! @see slang::ICompileRequest::setIngoreCapabilityCheck */
+    /*! @see slang::ICompileRequest::setIgnoreCapabilityCheck */
     SLANG_API void spSetIgnoreCapabilityCheck(slang::ICompileRequest* request, bool val);
 
     /*! @see slang::ICompileRequest::setCodeGenTarget */
@@ -371,7 +371,7 @@ extern "C"
         bool shouldClear);
 
 
-    /* Extract contents of a repro.
+    /** Extract contents of a repro.
 
     Writes the contained files and manifest with their 'unique' names into fileSystem. For more
     details read the docs/repro.md documentation.
@@ -440,7 +440,7 @@ extern "C"
         unsigned int index,
         float* rs);
 
-    /* Returns the string-typed value of a user attribute argument
+    /** Returns the string-typed value of a user attribute argument
         The string returned is not null-terminated. The length of the string is returned via
        `outSize`. If index of out of range, or if the specified argument is not a string, the
        function will return nullptr.
@@ -469,7 +469,7 @@ extern "C"
         SlangReflectionType* type,
         unsigned index);
 
-    /* Returns the number of elements in the given type.
+    /** Returns the number of elements in the given type.
 
     This operation is valid for vector and array types. For other types it returns zero.
 
@@ -774,7 +774,7 @@ extern "C"
         SlangReflectionGeneric* generic);
 
 
-    /* Get the stage that a variable belongs to (if any).
+    /** Get the stage that a variable belongs to (if any).
 
     A variable "belongs" to a specific stage when it is a varying input/output
     parameter either defined as part of the parameter list for an entry
@@ -852,6 +852,11 @@ extern "C"
         unsigned int index);
 
     // Shader Reflection
+
+    SLANG_API SlangResult spReflection_ToJson(
+        SlangReflection* reflection,
+        SlangCompileRequest* request,
+        ISlangBlob** outBlob);
 
     SLANG_API unsigned spReflection_GetParameterCount(SlangReflection* reflection);
     SLANG_API SlangReflectionParameter* spReflection_GetParameterByIndex(
@@ -931,11 +936,11 @@ extern "C"
     /// Count should *NOT* include terminating zero.
     SLANG_API SlangUInt32 spComputeStringHash(const char* chars, size_t count);
 
-    /// Get a type layout representing reflection information for the global-scope prameters.
+    /// Get a type layout representing reflection information for the global-scope parameters.
     SLANG_API SlangReflectionTypeLayout* spReflection_getGlobalParamsTypeLayout(
         SlangReflection* reflection);
 
-    /// Get a variable layout representing reflection information for the global-scope prameters.
+    /// Get a variable layout representing reflection information for the global-scope parameters.
     SLANG_API SlangReflectionVariableLayout* spReflection_getGlobalParamsVarLayout(
         SlangReflection* reflection);
 
@@ -957,32 +962,32 @@ struct IModule;
 
 extern "C"
 {
-    /* @see slang::ICompileRequest::getProgram
+    /** @see slang::ICompileRequest::getProgram
      */
     SLANG_API SlangResult
     spCompileRequest_getProgram(SlangCompileRequest* request, slang::IComponentType** outProgram);
 
-    /* @see slang::ICompileRequest::getProgramWithEntryPoints
+    /** @see slang::ICompileRequest::getProgramWithEntryPoints
      */
     SLANG_API SlangResult spCompileRequest_getProgramWithEntryPoints(
         SlangCompileRequest* request,
         slang::IComponentType** outProgram);
 
-    /* @see slang::ICompileRequest::getEntryPoint
+    /** @see slang::ICompileRequest::getEntryPoint
      */
     SLANG_API SlangResult spCompileRequest_getEntryPoint(
         SlangCompileRequest* request,
         SlangInt entryPointIndex,
         slang::IComponentType** outEntryPoint);
 
-    /* @see slang::ICompileRequest::getModule
+    /** @see slang::ICompileRequest::getModule
      */
     SLANG_API SlangResult spCompileRequest_getModule(
         SlangCompileRequest* request,
         SlangInt translationUnitIndex,
         slang::IModule** outModule);
 
-    /* @see slang::ICompileRequest::getSession
+    /** @see slang::ICompileRequest::getSession
      */
     SLANG_API SlangResult
     spCompileRequest_getSession(SlangCompileRequest* request, slang::ISession** outSession);
@@ -1001,7 +1006,7 @@ struct ICompileRequest : public ISlangUnknown
         0x4db5,
         {0xaf, 0xd8, 0x66, 0x6e, 0xe7, 0x72, 0x48, 0xe2})
 
-    /* Set the filesystem hook to use for a compile request
+    /** Set the filesystem hook to use for a compile request
 
     The provided `fileSystem` will be used to load any files that
     need to be loaded during processing of the compile `request`.
@@ -1118,7 +1123,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     processCommandLineArguments(char const* const* args, int argCount) = 0;
 
-    /* Add a distinct translation unit to the compilation request
+    /** Add a distinct translation unit to the compilation request
 
     `name` is optional.
     Returns the zero-based index of the translation unit created.
@@ -1127,12 +1132,12 @@ struct ICompileRequest : public ISlangUnknown
     addTranslationUnit(SlangSourceLanguage language, char const* name) = 0;
 
 
-    /* Set a default module name. Translation units will default to this module name if one is not
+    /** Set a default module name. Translation units will default to this module name if one is not
     passed. If not set each translation unit will get a unique name.
     */
     virtual SLANG_NO_THROW void SLANG_MCALL setDefaultModuleName(const char* defaultModuleName) = 0;
 
-    /* Add a preprocessor definition that is scoped to a single translation unit.
+    /** Add a preprocessor definition that is scoped to a single translation unit.
 
     @param translationUnitIndex The index of the translation unit to get the definition.
     @param key The name of the macro to define.
@@ -1144,7 +1149,7 @@ struct ICompileRequest : public ISlangUnknown
         const char* value) = 0;
 
 
-    /* Add a source file to the given translation unit.
+    /** Add a source file to the given translation unit.
 
     If a user-defined file system has been specified via
     `spSetFileSystem`, then it will be used to load the
@@ -1158,7 +1163,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     addTranslationUnitSourceFile(int translationUnitIndex, char const* path) = 0;
 
-    /* Add a source string to the given translation unit.
+    /** Add a source string to the given translation unit.
 
     @param translationUnitIndex The index of the translation unit to add source to.
     @param path The file-system path that should be assumed for the source code.
@@ -1177,7 +1182,7 @@ struct ICompileRequest : public ISlangUnknown
         char const* source) = 0;
 
 
-    /* Add a slang library - such that its contents can be referenced during linking.
+    /** Add a slang library - such that its contents can be referenced during linking.
     This is equivalent to the -r command line option.
 
     @param basePath The base path used to lookup referenced modules.
@@ -1187,7 +1192,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     addLibraryReference(const char* basePath, const void* libData, size_t libDataSize) = 0;
 
-    /* Add a source string to the given translation unit.
+    /** Add a source string to the given translation unit.
 
     @param translationUnitIndex The index of the translation unit to add source to.
     @param path The file-system path that should be assumed for the source code.
@@ -1207,7 +1212,7 @@ struct ICompileRequest : public ISlangUnknown
         char const* sourceBegin,
         char const* sourceEnd) = 0;
 
-    /* Add a blob of source code to the given translation unit.
+    /** Add a blob of source code to the given translation unit.
 
     @param translationUnitIndex The index of the translation unit to add source to.
     @param path The file-system path that should be assumed for the source code.
@@ -1225,12 +1230,12 @@ struct ICompileRequest : public ISlangUnknown
         char const* path,
         ISlangBlob* sourceBlob) = 0;
 
-    /* Add an entry point in a particular translation unit
+    /** Add an entry point in a particular translation unit
      */
     virtual SLANG_NO_THROW int SLANG_MCALL
     addEntryPoint(int translationUnitIndex, char const* name, SlangStage stage) = 0;
 
-    /* Add an entry point in a particular translation unit,
+    /** Add an entry point in a particular translation unit,
         with additional arguments that specify the concrete
         type names for entry-point generic type parameters.
     */
@@ -1241,12 +1246,12 @@ struct ICompileRequest : public ISlangUnknown
         int genericArgCount,
         char const** genericArgs) = 0;
 
-    /* Specify the arguments to use for global generic parameters.
+    /** Specify the arguments to use for global generic parameters.
      */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     setGlobalGenericArgs(int genericArgCount, char const** genericArgs) = 0;
 
-    /* Specify the concrete type to be used for a global "existential slot."
+    /** Specify the concrete type to be used for a global "existential slot."
 
     Every shader parameter (or leaf field of a `struct`-type shader parameter)
     that has an interface or array-of-interface type introduces an existential
@@ -1262,7 +1267,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     setTypeNameForGlobalExistentialTypeParam(int slotIndex, char const* typeName) = 0;
 
-    /* Specify the concrete type to be used for an entry-point "existential slot."
+    /** Specify the concrete type to be used for an entry-point "existential slot."
 
     Every shader parameter (or leaf field of a `struct`-type shader parameter)
     that has an interface or array-of-interface type introduces an existential
@@ -1280,11 +1285,11 @@ struct ICompileRequest : public ISlangUnknown
         int slotIndex,
         char const* typeName) = 0;
 
-    /* Enable or disable an experimental, best-effort GLSL frontend
+    /** Enable or disable an experimental, best-effort GLSL frontend
      */
     virtual SLANG_NO_THROW void SLANG_MCALL setAllowGLSLInput(bool value) = 0;
 
-    /* Execute the compilation request.
+    /** Execute the compilation request.
 
     @returns  SlangResult, SLANG_OK on success. Use SLANG_SUCCEEDED() and SLANG_FAILED() to test
     SlangResult.
@@ -1292,7 +1297,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL compile() = 0;
 
 
-    /* Get any diagnostic messages reported by the compiler.
+    /** Get any diagnostic messages reported by the compiler.
 
     @returns A null-terminated UTF-8 encoded string of diagnostic messages.
 
@@ -1303,7 +1308,7 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW char const* SLANG_MCALL getDiagnosticOutput() = 0;
 
-    /* Get diagnostic messages reported by the compiler.
+    /** Get diagnostic messages reported by the compiler.
 
     @param outBlob A pointer to receive a blob holding a nul-terminated UTF-8 encoded string of
     diagnostic messages.
@@ -1313,7 +1318,7 @@ struct ICompileRequest : public ISlangUnknown
     getDiagnosticOutputBlob(ISlangBlob** outBlob) = 0;
 
 
-    /* Get the number of files that this compilation depended on.
+    /** Get the number of files that this compilation depended on.
 
     This includes both the explicit source files, as well as any
     additional files that were transitively referenced (e.g., via
@@ -1321,28 +1326,28 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW int SLANG_MCALL getDependencyFileCount() = 0;
 
-    /* Get the path to a file this compilation depended on.
+    /** Get the path to a file this compilation depended on.
      */
     virtual SLANG_NO_THROW char const* SLANG_MCALL getDependencyFilePath(int index) = 0;
 
-    /* Get the number of translation units associated with the compilation request
+    /** Get the number of translation units associated with the compilation request
      */
     virtual SLANG_NO_THROW int SLANG_MCALL getTranslationUnitCount() = 0;
 
-    /* Get the output source code associated with a specific entry point.
+    /** Get the output source code associated with a specific entry point.
 
     The lifetime of the output pointer is the same as `request`.
     */
     virtual SLANG_NO_THROW char const* SLANG_MCALL getEntryPointSource(int entryPointIndex) = 0;
 
-    /* Get the output bytecode associated with a specific entry point.
+    /** Get the output bytecode associated with a specific entry point.
 
     The lifetime of the output pointer is the same as `request`.
     */
     virtual SLANG_NO_THROW void const* SLANG_MCALL
     getEntryPointCode(int entryPointIndex, size_t* outSize) = 0;
 
-    /* Get the output code associated with a specific entry point.
+    /** Get the output code associated with a specific entry point.
 
     @param entryPointIndex The index of the entry point to get code for.
     @param targetIndex The index of the target to get code for (default: zero).
@@ -1352,7 +1357,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getEntryPointCodeBlob(int entryPointIndex, int targetIndex, ISlangBlob** outBlob) = 0;
 
-    /* Get entry point 'callable' functions accessible through the ISlangSharedLibrary interface.
+    /** Get entry point 'callable' functions accessible through the ISlangSharedLibrary interface.
 
     That the functions remain in scope as long as the ISlangSharedLibrary interface is in scope.
 
@@ -1369,7 +1374,7 @@ struct ICompileRequest : public ISlangUnknown
         int targetIndex,
         ISlangSharedLibrary** outSharedLibrary) = 0;
 
-    /* Get the output code associated with a specific target.
+    /** Get the output code associated with a specific target.
 
     @param targetIndex The index of the target to get code for (default: zero).
     @param outBlob A pointer that will receive the blob of code
@@ -1378,7 +1383,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getTargetCodeBlob(int targetIndex, ISlangBlob** outBlob) = 0;
 
-    /* Get 'callable' functions for a target accessible through the ISlangSharedLibrary interface.
+    /** Get 'callable' functions for a target accessible through the ISlangSharedLibrary interface.
 
     That the functions remain in scope as long as the ISlangSharedLibrary interface is in scope.
 
@@ -1392,7 +1397,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getTargetHostCallable(int targetIndex, ISlangSharedLibrary** outSharedLibrary) = 0;
 
-    /* Get the output bytecode associated with an entire compile request.
+    /** Get the output bytecode associated with an entire compile request.
 
     The lifetime of the output pointer is the same as `request` and the last spCompile.
 
@@ -1403,14 +1408,14 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW void const* SLANG_MCALL getCompileRequestCode(size_t* outSize) = 0;
 
-    /* Get the compilation result as a file system.
-    The result is not written to the actual OS file system, but is made avaiable as an
+    /** Get the compilation result as a file system.
+    The result is not written to the actual OS file system, but is made available as an
     in memory representation.
     */
     virtual SLANG_NO_THROW ISlangMutableFileSystem* SLANG_MCALL
     getCompileRequestResultAsFileSystem() = 0;
 
-    /* Return the container code as a blob. The container blob is created as part of a compilation
+    /** Return the container code as a blob. The container blob is created as part of a compilation
     (with spCompile), and a container is produced with a suitable ContainerFormat.
 
     @param outSize          The blob containing the container data.
@@ -1418,7 +1423,7 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL getContainerCode(ISlangBlob** outBlob) = 0;
 
-    /* Load repro from memory specified.
+    /** Load repro from memory specified.
 
     Should only be performed on a newly created request.
 
@@ -1434,7 +1439,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     loadRepro(ISlangFileSystem* fileSystem, const void* data, size_t size) = 0;
 
-    /* Save repro state. Should *typically* be performed after spCompile, so that everything
+    /** Save repro state. Should *typically* be performed after spCompile, so that everything
     that is needed for a compilation is available.
 
     @param outBlob          Blob that will hold the serialized state
@@ -1442,7 +1447,7 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL saveRepro(ISlangBlob** outBlob) = 0;
 
-    /* Enable repro capture.
+    /** Enable repro capture.
 
     Should be set after any ISlangFileSystem has been set, but before any compilation. It ensures
     that everything that the ISlangFileSystem accesses will be correctly recorded. Note that if a
@@ -1453,7 +1458,7 @@ struct ICompileRequest : public ISlangUnknown
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL enableReproCapture() = 0;
 
-    /* Get the (linked) program for a compile request.
+    /** Get the (linked) program for a compile request.
 
     The linked program will include all of the global-scope modules for the
     translation units in the program, plus any modules that they `import`
@@ -1463,7 +1468,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getProgram(slang::IComponentType** outProgram) = 0;
 
-    /* Get the (partially linked) component type for an entry point.
+    /** Get the (partially linked) component type for an entry point.
 
     The returned component type will include the entry point at the
     given index, and will be specialized using any specialization arguments
@@ -1478,7 +1483,7 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getEntryPoint(SlangInt entryPointIndex, slang::IComponentType** outEntryPoint) = 0;
 
-    /* Get the (un-linked) module for a translation unit.
+    /** Get the (un-linked) module for a translation unit.
 
     The returned module will not be linked against any dependencies,
     nor against any entry points (even entry points declared inside
@@ -1493,22 +1498,22 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     getModule(SlangInt translationUnitIndex, slang::IModule** outModule) = 0;
 
-    /* Get the `ISession` handle behind the `SlangCompileRequest`.
+    /** Get the `ISession` handle behind the `SlangCompileRequest`.
     TODO(JS): Arguably this should just return the session pointer.
     */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL getSession(slang::ISession** outSession) = 0;
 
-    /* get reflection data from a compilation request */
+    /** get reflection data from a compilation request */
     virtual SLANG_NO_THROW SlangReflection* SLANG_MCALL getReflection() = 0;
 
-    /* Make output specially handled for command line output */
+    /** Make output specially handled for command line output */
     virtual SLANG_NO_THROW void SLANG_MCALL setCommandLineCompilerMode() = 0;
 
-    /* Add a defined capability that should be assumed available on the target */
+    /** Add a defined capability that should be assumed available on the target */
     virtual SLANG_NO_THROW SlangResult SLANG_MCALL
     addTargetCapability(SlangInt targetIndex, SlangCapabilityID capability) = 0;
 
-    /* Get the (linked) program for a compile request, including all entry points.
+    /** Get the (linked) program for a compile request, including all entry points.
 
     The resulting program will include all of the global-scope modules for the
     translation units in the program, plus any modules that they `import`
@@ -1527,19 +1532,19 @@ struct ICompileRequest : public ISlangUnknown
         SlangUInt registerIndex,
         bool& outUsed) = 0;
 
-    /* Set the line directive mode for a target.
+    /** Set the line directive mode for a target.
      */
     virtual SLANG_NO_THROW void SLANG_MCALL
     setTargetLineDirectiveMode(SlangInt targetIndex, SlangLineDirectiveMode mode) = 0;
 
-    /* Set whether to use scalar buffer layouts for GLSL/Vulkan targets.
+    /** Set whether to use scalar buffer layouts for GLSL/Vulkan targets.
         If true, the generated GLSL/Vulkan code will use `scalar` layout for storage buffers.
         If false, the resulting code will std430 for storage buffers.
     */
     virtual SLANG_NO_THROW void SLANG_MCALL
     setTargetForceGLSLScalarBufferLayout(int targetIndex, bool forceScalarLayout) = 0;
 
-    /* Overrides the severity of a specific diagnostic message.
+    /** Overrides the severity of a specific diagnostic message.
 
     @param messageID            Numeric identifier of the message to override,
                                 as defined in the 1st parameter of the DIAGNOSTIC macro.
@@ -1549,14 +1554,14 @@ struct ICompileRequest : public ISlangUnknown
     virtual SLANG_NO_THROW void SLANG_MCALL
     overrideDiagnosticSeverity(SlangInt messageID, SlangSeverity overrideSeverity) = 0;
 
-    /* Returns the currently active flags of the request's diagnostic sink. */
+    /** Returns the currently active flags of the request's diagnostic sink. */
     virtual SLANG_NO_THROW SlangDiagnosticFlags SLANG_MCALL getDiagnosticFlags() = 0;
 
-    /* Sets the flags of the request's diagnostic sink.
+    /** Sets the flags of the request's diagnostic sink.
         The previously specified flags are discarded. */
     virtual SLANG_NO_THROW void SLANG_MCALL setDiagnosticFlags(SlangDiagnosticFlags flags) = 0;
 
-    /* Set the debug format to be used for debugging information */
+    /** Set the debug format to be used for debugging information */
     virtual SLANG_NO_THROW void SLANG_MCALL
     setDebugInfoFormat(SlangDebugInfoFormat debugFormat) = 0;
 
