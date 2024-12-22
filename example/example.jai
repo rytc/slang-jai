@@ -55,7 +55,13 @@ main :: () {
 
     log("SPIRV output:");
 
-    log("%", spirv_code_raw);        
+    log("%", spirv_code_raw);
+
+    slang.ISlangUnknown_release(spirv_code);
+    slang.ISlangUnknown_release(composed_program);
+    // slang.ISlangUnknown_release(diagnostic_blob); // there was no diagnostic blob so it is null
+    slang.ISlangUnknown_release(session);
+    slang.ISlangUnknown_release(global_session);
 }
 
 #import "Basic";
