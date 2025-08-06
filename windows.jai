@@ -214,7 +214,9 @@ SlangCompileTarget :: enum SlangCompileTargetIntegral {
     WGSL                            :: 28;
     WGSL_SPIRV_ASM                  :: 29;
     WGSL_SPIRV                      :: 30;
-    TARGET_COUNT_OF                 :: 31;
+
+    HOST_VM                         :: 31;
+    TARGET_COUNT_OF                 :: 32;
 
     SLANG_TARGET_UNKNOWN                  :: TARGET_UNKNOWN;
     SLANG_TARGET_NONE                     :: TARGET_NONE;
@@ -249,6 +251,8 @@ SlangCompileTarget :: enum SlangCompileTargetIntegral {
     SLANG_WGSL                            :: WGSL;
     SLANG_WGSL_SPIRV_ASM                  :: WGSL_SPIRV_ASM;
     SLANG_WGSL_SPIRV                      :: WGSL_SPIRV;
+
+    SLANG_HOST_VM                         :: HOST_VM;
     SLANG_TARGET_COUNT_OF                 :: TARGET_COUNT_OF;
 }
 
@@ -283,7 +287,8 @@ SlangPassThrough :: enum SlangPassThroughIntegral {
     SPIRV_OPT     :: 11;
     METAL         :: 12;
     TINT          :: 13;
-    COUNT_OF      :: 14;
+    SPIRV_LINK    :: 14;
+    COUNT_OF      :: 15;
 
     SLANG_PASS_THROUGH_NONE          :: NONE;
     SLANG_PASS_THROUGH_FXC           :: FXC;
@@ -300,6 +305,7 @@ SlangPassThrough :: enum SlangPassThroughIntegral {
     SLANG_PASS_THROUGH_SPIRV_OPT     :: SPIRV_OPT;
     SLANG_PASS_THROUGH_METAL         :: METAL;
     SLANG_PASS_THROUGH_TINT          :: TINT;
+    SLANG_PASS_THROUGH_SPIRV_LINK    :: SPIRV_LINK;
     SLANG_PASS_THROUGH_COUNT_OF      :: COUNT_OF;
 }
 
@@ -380,6 +386,20 @@ SlangFloatingPointMode :: enum SlangFloatingPointModeIntegral {
     SLANG_FLOATING_POINT_MODE_DEFAULT :: DEFAULT;
     SLANG_FLOATING_POINT_MODE_FAST    :: FAST;
     SLANG_FLOATING_POINT_MODE_PRECISE :: PRECISE;
+}
+
+/*!
+@brief Options to control floating-point denormal handling mode for a target.
+*/
+SlangFpDenormalModeIntegral :: u32;
+SlangFpDenormalMode :: enum SlangFpDenormalModeIntegral {
+    ANY      :: 0;
+    PRESERVE :: 1;
+    FTZ      :: 2;
+
+    SLANG_FP_DENORM_MODE_ANY      :: ANY;
+    SLANG_FP_DENORM_MODE_PRESERVE :: PRESERVE;
+    SLANG_FP_DENORM_MODE_FTZ      :: FTZ;
 }
 
 /*!
@@ -469,6 +489,9 @@ SlangStage :: enum SlangStageIntegral {
     CALLABLE       :: 12;
     MESH           :: 13;
     AMPLIFICATION  :: 14;
+    DISPATCH       :: 15;
+
+    COUNT          :: 16;
 
     PIXEL          :: 5;
 
@@ -487,6 +510,9 @@ SlangStage :: enum SlangStageIntegral {
     SLANG_STAGE_CALLABLE       :: CALLABLE;
     SLANG_STAGE_MESH           :: MESH;
     SLANG_STAGE_AMPLIFICATION  :: AMPLIFICATION;
+    SLANG_STAGE_DISPATCH       :: DISPATCH;
+
+    SLANG_STAGE_COUNT          :: COUNT;
 
     SLANG_STAGE_PIXEL          :: PIXEL;
 }
@@ -561,137 +587,158 @@ SlangEmitSpirvMethod :: enum s32 {
 // All compiler option names supported by Slang.
 
 CompilerOptionName :: enum s32 {
-    MacroDefine                      :: 0;
-    DepFile                          :: 1;
-    EntryPointName                   :: 2;
-    Specialize                       :: 3;
-    Help                             :: 4;
-    HelpStyle                        :: 5;
-    Include                          :: 6;
-    Language                         :: 7;
-    MatrixLayoutColumn               :: 8;
-    MatrixLayoutRow                  :: 9;
-    ZeroInitialize                   :: 10;
-    IgnoreCapabilities               :: 11;
-    RestrictiveCapabilityCheck       :: 12;
-    ModuleName                       :: 13;
-    Output                           :: 14;
-    Profile                          :: 15;
-    Stage                            :: 16;
-    Target                           :: 17;
-    Version                          :: 18;
-    WarningsAsErrors                 :: 19;
-    DisableWarnings                  :: 20;
-    EnableWarning                    :: 21;
-    DisableWarning                   :: 22;
-    DumpWarningDiagnostics           :: 23;
-    InputFilesRemain                 :: 24;
-    EmitIr                           :: 25;
-    ReportDownstreamTime             :: 26;
-    ReportPerfBenchmark              :: 27;
-    ReportCheckpointIntermediates    :: 28;
-    SkipSPIRVValidation              :: 29;
-    SourceEmbedStyle                 :: 30;
-    SourceEmbedName                  :: 31;
-    SourceEmbedLanguage              :: 32;
-    DisableShortCircuit              :: 33;
-    MinimumSlangOptimization         :: 34;
-    DisableNonEssentialValidations   :: 35;
-    DisableSourceMap                 :: 36;
-    UnscopedEnum                     :: 37;
-    PreserveParameters               :: 38;
+    MacroDefine                       :: 0;
+    DepFile                           :: 1;
+    EntryPointName                    :: 2;
+    Specialize                        :: 3;
+    Help                              :: 4;
+    HelpStyle                         :: 5;
+    Include                           :: 6;
+    Language                          :: 7;
+    MatrixLayoutColumn                :: 8;
+    MatrixLayoutRow                   :: 9;
+    ZeroInitialize                    :: 10;
+    IgnoreCapabilities                :: 11;
+    RestrictiveCapabilityCheck        :: 12;
+    ModuleName                        :: 13;
+    Output                            :: 14;
+    Profile                           :: 15;
+    Stage                             :: 16;
+    Target                            :: 17;
+    Version                           :: 18;
+    WarningsAsErrors                  :: 19;
+    DisableWarnings                   :: 20;
+    EnableWarning                     :: 21;
+    DisableWarning                    :: 22;
+    DumpWarningDiagnostics            :: 23;
+    InputFilesRemain                  :: 24;
+    EmitIr                            :: 25;
+    ReportDownstreamTime              :: 26;
+    ReportPerfBenchmark               :: 27;
+    ReportCheckpointIntermediates     :: 28;
+    SkipSPIRVValidation               :: 29;
+    SourceEmbedStyle                  :: 30;
+    SourceEmbedName                   :: 31;
+    SourceEmbedLanguage               :: 32;
+    DisableShortCircuit               :: 33;
+    MinimumSlangOptimization          :: 34;
+    DisableNonEssentialValidations    :: 35;
+    DisableSourceMap                  :: 36;
+    UnscopedEnum                      :: 37;
+    PreserveParameters                :: 38;
 
-    Capability                       :: 39;
-    DefaultImageFormatUnknown        :: 40;
-    DisableDynamicDispatch           :: 41;
-    DisableSpecialization            :: 42;
-    FloatingPointMode                :: 43;
-    DebugInformation                 :: 44;
-    LineDirectiveMode                :: 45;
-    Optimization                     :: 46;
-    Obfuscate                        :: 47;
+    Capability                        :: 39;
+    DefaultImageFormatUnknown         :: 40;
+    DisableDynamicDispatch            :: 41;
+    DisableSpecialization             :: 42;
+    FloatingPointMode                 :: 43;
+    DebugInformation                  :: 44;
+    LineDirectiveMode                 :: 45;
+    Optimization                      :: 46;
+    Obfuscate                         :: 47;
 
-    VulkanBindShift                  :: 48;
+    VulkanBindShift                   :: 48;
 
-    VulkanBindGlobals                :: 49;
-    VulkanInvertY                    :: 50;
-    VulkanUseDxPositionW             :: 51;
-    VulkanUseEntryPointName          :: 52;
-    VulkanUseGLLayout                :: 53;
-    VulkanEmitReflection             :: 54;
+    VulkanBindGlobals                 :: 49;
+    VulkanInvertY                     :: 50;
+    VulkanUseDxPositionW              :: 51;
+    VulkanUseEntryPointName           :: 52;
+    VulkanUseGLLayout                 :: 53;
+    VulkanEmitReflection              :: 54;
 
-    GLSLForceScalarLayout            :: 55;
-    EnableEffectAnnotations          :: 56;
+    GLSLForceScalarLayout             :: 55;
+    EnableEffectAnnotations           :: 56;
 
-    EmitSpirvViaGLSL                 :: 57;
-    EmitSpirvDirectly                :: 58;
-    SPIRVCoreGrammarJSON             :: 59;
-    IncompleteLibrary                :: 60;
+    EmitSpirvViaGLSL                  :: 57;
+    EmitSpirvDirectly                 :: 58;
+    SPIRVCoreGrammarJSON              :: 59;
+    IncompleteLibrary                 :: 60;
 
-    CompilerPath                     :: 61;
-    DefaultDownstreamCompiler        :: 62;
-    DownstreamArgs                   :: 63;
+    CompilerPath                      :: 61;
+    DefaultDownstreamCompiler         :: 62;
+    DownstreamArgs                    :: 63;
 
-    PassThrough                      :: 64;
+    PassThrough                       :: 64;
 
-    DumpRepro                        :: 65;
-    DumpReproOnError                 :: 66;
-    ExtractRepro                     :: 67;
-    LoadRepro                        :: 68;
-    LoadReproDirectory               :: 69;
-    ReproFallbackDirectory           :: 70;
+    DumpRepro                         :: 65;
+    DumpReproOnError                  :: 66;
+    ExtractRepro                      :: 67;
+    LoadRepro                         :: 68;
+    LoadReproDirectory                :: 69;
+    ReproFallbackDirectory            :: 70;
 
-    DumpAst                          :: 71;
-    DumpIntermediatePrefix           :: 72;
-    DumpIntermediates                :: 73;
-    DumpIr                           :: 74;
-    DumpIrIds                        :: 75;
-    PreprocessorOutput               :: 76;
-    OutputIncludes                   :: 77;
-    ReproFileSystem                  :: 78;
-    SerialIr                         :: 79;
-    SkipCodeGen                      :: 80;
-    ValidateIr                       :: 81;
-    VerbosePaths                     :: 82;
-    VerifyDebugSerialIr              :: 83;
-    NoCodeGen                        :: 84;
+    DumpAst                           :: 71;
+    DumpIntermediatePrefix            :: 72;
+    DumpIntermediates                 :: 73;
+    DumpIr                            :: 74;
+    DumpIrIds                         :: 75;
+    PreprocessorOutput                :: 76;
+    OutputIncludes                    :: 77;
+    ReproFileSystem                   :: 78;
+    REMOVED_SerialIR                  :: 79;
+    SkipCodeGen                       :: 80;
+    ValidateIr                        :: 81;
+    VerbosePaths                      :: 82;
+    VerifyDebugSerialIr               :: 83;
+    NoCodeGen                         :: 84;
 
-    FileSystem                       :: 85;
-    Heterogeneous                    :: 86;
-    NoMangle                         :: 87;
-    NoHLSLBinding                    :: 88;
-    NoHLSLPackConstantBufferElements :: 89;
-    ValidateUniformity               :: 90;
-    AllowGLSL                        :: 91;
-    EnableExperimentalPasses         :: 92;
+    FileSystem                        :: 85;
+    Heterogeneous                     :: 86;
+    NoMangle                          :: 87;
+    NoHLSLBinding                     :: 88;
+    NoHLSLPackConstantBufferElements  :: 89;
+    ValidateUniformity                :: 90;
+    AllowGLSL                         :: 91;
+    EnableExperimentalPasses          :: 92;
+    BindlessSpaceIndex                :: 93;
 
-    ArchiveType                      :: 93;
-    CompileCoreModule                :: 94;
-    Doc                              :: 95;
-    IrCompression                    :: 96;
-    LoadCoreModule                   :: 97;
-    ReferenceModule                  :: 98;
-    SaveCoreModule                   :: 99;
-    SaveCoreModuleBinSource          :: 100;
-    TrackLiveness                    :: 101;
-    LoopInversion                    :: 102;
+    ArchiveType                       :: 94;
+    CompileCoreModule                 :: 95;
+    Doc                               :: 96;
 
-    ParameterBlocksUseRegisterSpaces :: 103;
+    IrCompression                     :: 97;
 
-    CountOfParsableOptions           :: 104;
+    LoadCoreModule                    :: 98;
+    ReferenceModule                   :: 99;
+    SaveCoreModule                    :: 100;
+    SaveCoreModuleBinSource           :: 101;
+    TrackLiveness                     :: 102;
+    LoopInversion                     :: 103;
 
-    DebugInformationFormat           :: 105;
-    VulkanBindShiftAll               :: 106;
-    GenerateWholeProgram             :: 107;
-    UseUpToDateBinaryModule          :: 108;
+    ParameterBlocksUseRegisterSpaces  :: 104;
+    LanguageVersion                   :: 105;
+    TypeConformance                   :: 106;
 
-    EmbedDownstreamIR                :: 109;
-    ForceDXLayout                    :: 110;
+    EnableExperimentalDynamicDispatch :: 107;
+    EmitReflectionJSON                :: 108;
 
-    EmitSpirvMethod                  :: 111;
+    CountOfParsableOptions            :: 109;
 
-    EmitReflectionJSON               :: 112;
-    CountOf                          :: 113;
+    DebugInformationFormat            :: 110;
+    VulkanBindShiftAll                :: 111;
+    GenerateWholeProgram              :: 112;
+    UseUpToDateBinaryModule           :: 113;
+
+    EmbedDownstreamIR                 :: 114;
+    ForceDXLayout                     :: 115;
+
+    EmitSpirvMethod                   :: 116;
+
+    SaveGLSLModuleBinSource           :: 117;
+
+    SkipDownstreamLinking             :: 118;
+    DumpModule                        :: 119;
+
+    GetModuleInfo                     :: 120;
+    GetSupportedModuleVersions        :: 121;
+
+    EmitSeparateDebug                 :: 122;
+
+    DenormalModeFp16                  :: 123;
+    DenormalModeFp32                  :: 124;
+    DenormalModeFp64                  :: 125;
+
+    CountOf                           :: 126;
 }
 
 CompilerOptionValueKind :: enum s32 {
@@ -716,174 +763,253 @@ CompilerOptionEntry :: struct {
 @brief A request for one or more compilation actions to be performed.
 */
 ICompileRequest :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; icompilerequest_vtable: *ICompileRequest_VTable;
+    vtable: *ICompileRequest_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ICompileRequest_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    setFileSystem: (this: *ICompileRequest, fileSystem: *ISlangFileSystem) -> void #cpp_method;
-    setCompileFlags: (this: *ICompileRequest, flags: SlangCompileFlags) -> void #cpp_method;
-    getCompileFlags: (this: *ICompileRequest) -> SlangCompileFlags #cpp_method;
-    setDumpIntermediates: (this: *ICompileRequest, enable: s32) -> void #cpp_method;
-    setDumpIntermediatePrefix: (this: *ICompileRequest, prefix: *u8) -> void #cpp_method;
-    setLineDirectiveMode: (this: *ICompileRequest, mode: SlangLineDirectiveMode) -> void #cpp_method;
-    setCodeGenTarget: (this: *ICompileRequest, target: SlangCompileTarget) -> void #cpp_method;
-    addCodeGenTarget: (this: *ICompileRequest, target: SlangCompileTarget) -> s32 #cpp_method;
-    setTargetProfile: (this: *ICompileRequest, targetIndex: s32, profile: SlangProfileID) -> void #cpp_method;
-    setTargetFlags: (this: *ICompileRequest, targetIndex: s32, flags: SlangTargetFlags) -> void #cpp_method;
-    setTargetFloatingPointMode: (this: *ICompileRequest, targetIndex: s32, mode: SlangFloatingPointMode) -> void #cpp_method;
-    setTargetMatrixLayoutMode: (this: *ICompileRequest, targetIndex: s32, mode: SlangMatrixLayoutMode) -> void #cpp_method;
-    setMatrixLayoutMode: (this: *ICompileRequest, mode: SlangMatrixLayoutMode) -> void #cpp_method;
-    setDebugInfoLevel: (this: *ICompileRequest, level: SlangDebugInfoLevel) -> void #cpp_method;
-    setOptimizationLevel: (this: *ICompileRequest, level: SlangOptimizationLevel) -> void #cpp_method;
-    setOutputContainerFormat: (this: *ICompileRequest, format: SlangContainerFormat) -> void #cpp_method;
-    setPassThrough: (this: *ICompileRequest, passThrough: SlangPassThrough) -> void #cpp_method;
-    setDiagnosticCallback: (this: *ICompileRequest, callback: SlangDiagnosticCallback, userData: *void) -> void #cpp_method;
-    setWriter: (this: *ICompileRequest, channel: SlangWriterChannel, writer: *ISlangWriter) -> void #cpp_method;
-    getWriter: (this: *ICompileRequest, channel: SlangWriterChannel) -> *ISlangWriter #cpp_method;
-    addSearchPath: (this: *ICompileRequest, searchDir: *u8) -> void #cpp_method;
-    addPreprocessorDefine: (this: *ICompileRequest, key: *u8, value: *u8) -> void #cpp_method;
-    processCommandLineArguments: (this: *ICompileRequest, args: **u8, argCount: s32) -> SlangResult #cpp_method;
-    addTranslationUnit: (this: *ICompileRequest, language: SlangSourceLanguage, name: *u8) -> s32 #cpp_method;
-    setDefaultModuleName: (this: *ICompileRequest, defaultModuleName: *u8) -> void #cpp_method;
-    addTranslationUnitPreprocessorDefine: (this: *ICompileRequest, translationUnitIndex: s32, key: *u8, value: *u8) -> void #cpp_method;
-    addTranslationUnitSourceFile: (this: *ICompileRequest, translationUnitIndex: s32, path: *u8) -> void #cpp_method;
-    addTranslationUnitSourceString: (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, source: *u8) -> void #cpp_method;
-    addLibraryReference: (this: *ICompileRequest, basePath: *u8, libData: *void, libDataSize: u64) -> SlangResult #cpp_method;
-    addTranslationUnitSourceStringSpan: (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBegin: *u8, sourceEnd: *u8) -> void #cpp_method;
-    addTranslationUnitSourceBlob: (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBlob: *ISlangBlob) -> void #cpp_method;
-    addEntryPoint: (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage) -> s32 #cpp_method;
-    addEntryPointEx: (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage, genericArgCount: s32, genericArgs: **u8) -> s32 #cpp_method;
-    setGlobalGenericArgs: (this: *ICompileRequest, genericArgCount: s32, genericArgs: **u8) -> SlangResult #cpp_method;
-    setTypeNameForGlobalExistentialTypeParam: (this: *ICompileRequest, slotIndex: s32, typeName: *u8) -> SlangResult #cpp_method;
-    setTypeNameForEntryPointExistentialTypeParam: (this: *ICompileRequest, entryPointIndex: s32, slotIndex: s32, typeName: *u8) -> SlangResult #cpp_method;
-    setAllowGLSLInput: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    compile: (this: *ICompileRequest) -> SlangResult #cpp_method;
-    getDiagnosticOutput: (this: *ICompileRequest) -> *u8 #cpp_method;
-    getDiagnosticOutputBlob: (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    getDependencyFileCount: (this: *ICompileRequest) -> s32 #cpp_method;
-    getDependencyFilePath: (this: *ICompileRequest, index: s32) -> *u8 #cpp_method;
-    getTranslationUnitCount: (this: *ICompileRequest) -> s32 #cpp_method;
-    getEntryPointSource: (this: *ICompileRequest, entryPointIndex: s32) -> *u8 #cpp_method;
-    getEntryPointCode: (this: *ICompileRequest, entryPointIndex: s32, outSize: *u64) -> *void #cpp_method;
-    getEntryPointCodeBlob: (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    getEntryPointHostCallable: (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #cpp_method;
-    getTargetCodeBlob: (this: *ICompileRequest, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    getTargetHostCallable: (this: *ICompileRequest, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #cpp_method;
-    getCompileRequestCode: (this: *ICompileRequest, outSize: *u64) -> *void #cpp_method;
-    getCompileRequestResultAsFileSystem: (this: *ICompileRequest) -> *ISlangMutableFileSystem #cpp_method;
-    getContainerCode: (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    loadRepro: (this: *ICompileRequest, fileSystem: *ISlangFileSystem, data: *void, size: u64) -> SlangResult #cpp_method;
-    saveRepro: (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    enableReproCapture: (this: *ICompileRequest) -> SlangResult #cpp_method;
-    getProgram: (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult #cpp_method;
-    getEntryPoint: (this: *ICompileRequest, entryPointIndex: SlangInt, outEntryPoint: **IComponentType) -> SlangResult #cpp_method;
-    getModule: (this: *ICompileRequest, translationUnitIndex: SlangInt, outModule: **IModule) -> SlangResult #cpp_method;
-    getSession: (this: *ICompileRequest, outSession: **ISession) -> SlangResult #cpp_method;
-    getReflection: (this: *ICompileRequest) -> *SlangReflection #cpp_method;
-    setCommandLineCompilerMode: (this: *ICompileRequest) -> void #cpp_method;
-    addTargetCapability: (this: *ICompileRequest, targetIndex: SlangInt, capability: SlangCapabilityID) -> SlangResult #cpp_method;
-    getProgramWithEntryPoints: (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult #cpp_method;
-    isParameterLocationUsed: (this: *ICompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #cpp_method;
-    setTargetLineDirectiveMode: (this: *ICompileRequest, targetIndex: SlangInt, mode: SlangLineDirectiveMode) -> void #cpp_method;
-    setTargetForceGLSLScalarBufferLayout: (this: *ICompileRequest, targetIndex: s32, forceScalarLayout: bool) -> void #cpp_method;
-    overrideDiagnosticSeverity: (this: *ICompileRequest, messageID: SlangInt, overrideSeverity: SlangSeverity) -> void #cpp_method;
-    getDiagnosticFlags: (this: *ICompileRequest) -> SlangDiagnosticFlags #cpp_method;
-    setDiagnosticFlags: (this: *ICompileRequest, flags: SlangDiagnosticFlags) -> void #cpp_method;
-    setDebugInfoFormat: (this: *ICompileRequest, debugFormat: SlangDebugInfoFormat) -> void #cpp_method;
-    setEnableEffectAnnotations: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    setReportDownstreamTime: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    setReportPerfBenchmark: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    setSkipSPIRVValidation: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    setTargetUseMinimumSlangOptimization: (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
-    setIgnoreCapabilityCheck: (this: *ICompileRequest, value: bool) -> void #cpp_method;
-    getCompileTimeProfile: (this: *ICompileRequest, compileTimeProfile: **ISlangProfiler, shouldClear: bool) -> SlangResult #cpp_method;
-    setTargetGenerateWholeProgram: (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
-    setTargetForceDXLayout: (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
-    setTargetEmbedDownstreamIR: (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
+    using vtable:                                 ISlangUnknown_VTable;
+    setFileSystem:                                #type (this: *ICompileRequest, fileSystem: *ISlangFileSystem) -> void #cpp_method;
+    setCompileFlags:                              #type (this: *ICompileRequest, flags: SlangCompileFlags) -> void #cpp_method;
+    getCompileFlags:                              #type (this: *ICompileRequest) -> SlangCompileFlags #cpp_method;
+    setDumpIntermediates:                         #type (this: *ICompileRequest, enable: s32) -> void #cpp_method;
+    setDumpIntermediatePrefix:                    #type (this: *ICompileRequest, prefix: *u8) -> void #cpp_method;
+    setLineDirectiveMode:                         #type (this: *ICompileRequest, mode: SlangLineDirectiveMode) -> void #cpp_method;
+    setCodeGenTarget:                             #type (this: *ICompileRequest, target: SlangCompileTarget) -> void #cpp_method;
+    addCodeGenTarget:                             #type (this: *ICompileRequest, target: SlangCompileTarget) -> s32 #cpp_method;
+    setTargetProfile:                             #type (this: *ICompileRequest, targetIndex: s32, profile: SlangProfileID) -> void #cpp_method;
+    setTargetFlags:                               #type (this: *ICompileRequest, targetIndex: s32, flags: SlangTargetFlags) -> void #cpp_method;
+    setTargetFloatingPointMode:                   #type (this: *ICompileRequest, targetIndex: s32, mode: SlangFloatingPointMode) -> void #cpp_method;
+    setTargetMatrixLayoutMode:                    #type (this: *ICompileRequest, targetIndex: s32, mode: SlangMatrixLayoutMode) -> void #cpp_method;
+    setMatrixLayoutMode:                          #type (this: *ICompileRequest, mode: SlangMatrixLayoutMode) -> void #cpp_method;
+    setDebugInfoLevel:                            #type (this: *ICompileRequest, level: SlangDebugInfoLevel) -> void #cpp_method;
+    setOptimizationLevel:                         #type (this: *ICompileRequest, level: SlangOptimizationLevel) -> void #cpp_method;
+    setOutputContainerFormat:                     #type (this: *ICompileRequest, format: SlangContainerFormat) -> void #cpp_method;
+    setPassThrough:                               #type (this: *ICompileRequest, passThrough: SlangPassThrough) -> void #cpp_method;
+    setDiagnosticCallback:                        #type (this: *ICompileRequest, callback: SlangDiagnosticCallback, userData: *void) -> void #cpp_method;
+    setWriter:                                    #type (this: *ICompileRequest, channel: SlangWriterChannel, writer: *ISlangWriter) -> void #cpp_method;
+    getWriter:                                    #type (this: *ICompileRequest, channel: SlangWriterChannel) -> *ISlangWriter #cpp_method;
+    addSearchPath:                                #type (this: *ICompileRequest, searchDir: *u8) -> void #cpp_method;
+    addPreprocessorDefine:                        #type (this: *ICompileRequest, key: *u8, value: *u8) -> void #cpp_method;
+    processCommandLineArguments:                  #type (this: *ICompileRequest, args: **u8, argCount: s32) -> SlangResult #cpp_method;
+    addTranslationUnit:                           #type (this: *ICompileRequest, language: SlangSourceLanguage, name: *u8) -> s32 #cpp_method;
+    setDefaultModuleName:                         #type (this: *ICompileRequest, defaultModuleName: *u8) -> void #cpp_method;
+    addTranslationUnitPreprocessorDefine:         #type (this: *ICompileRequest, translationUnitIndex: s32, key: *u8, value: *u8) -> void #cpp_method;
+    addTranslationUnitSourceFile:                 #type (this: *ICompileRequest, translationUnitIndex: s32, path: *u8) -> void #cpp_method;
+    addTranslationUnitSourceString:               #type (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, source: *u8) -> void #cpp_method;
+    addLibraryReference:                          #type (this: *ICompileRequest, basePath: *u8, libData: *void, libDataSize: u64) -> SlangResult #cpp_method;
+    addTranslationUnitSourceStringSpan:           #type (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBegin: *u8, sourceEnd: *u8) -> void #cpp_method;
+    addTranslationUnitSourceBlob:                 #type (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBlob: *ISlangBlob) -> void #cpp_method;
+    addEntryPoint:                                #type (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage) -> s32 #cpp_method;
+    addEntryPointEx:                              #type (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage, genericArgCount: s32, genericArgs: **u8) -> s32 #cpp_method;
+    setGlobalGenericArgs:                         #type (this: *ICompileRequest, genericArgCount: s32, genericArgs: **u8) -> SlangResult #cpp_method;
+    setTypeNameForGlobalExistentialTypeParam:     #type (this: *ICompileRequest, slotIndex: s32, typeName: *u8) -> SlangResult #cpp_method;
+    setTypeNameForEntryPointExistentialTypeParam: #type (this: *ICompileRequest, entryPointIndex: s32, slotIndex: s32, typeName: *u8) -> SlangResult #cpp_method;
+    setAllowGLSLInput:                            #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    compile:                                      #type (this: *ICompileRequest) -> SlangResult #cpp_method;
+    getDiagnosticOutput:                          #type (this: *ICompileRequest) -> *u8 #cpp_method;
+    getDiagnosticOutputBlob:                      #type (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    getDependencyFileCount:                       #type (this: *ICompileRequest) -> s32 #cpp_method;
+    getDependencyFilePath:                        #type (this: *ICompileRequest, index: s32) -> *u8 #cpp_method;
+    getTranslationUnitCount:                      #type (this: *ICompileRequest) -> s32 #cpp_method;
+    getEntryPointSource:                          #type (this: *ICompileRequest, entryPointIndex: s32) -> *u8 #cpp_method;
+    getEntryPointCode:                            #type (this: *ICompileRequest, entryPointIndex: s32, outSize: *u64) -> *void #cpp_method;
+    getEntryPointCodeBlob:                        #type (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    getEntryPointHostCallable:                    #type (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #cpp_method;
+    getTargetCodeBlob:                            #type (this: *ICompileRequest, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    getTargetHostCallable:                        #type (this: *ICompileRequest, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #cpp_method;
+    getCompileRequestCode:                        #type (this: *ICompileRequest, outSize: *u64) -> *void #cpp_method;
+    getCompileRequestResultAsFileSystem:          #type (this: *ICompileRequest) -> *ISlangMutableFileSystem #cpp_method;
+    getContainerCode:                             #type (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    loadRepro:                                    #type (this: *ICompileRequest, fileSystem: *ISlangFileSystem, data: *void, size: u64) -> SlangResult #cpp_method;
+    saveRepro:                                    #type (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    enableReproCapture:                           #type (this: *ICompileRequest) -> SlangResult #cpp_method;
+    getProgram:                                   #type (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult #cpp_method;
+    getEntryPoint:                                #type (this: *ICompileRequest, entryPointIndex: SlangInt, outEntryPoint: **IComponentType) -> SlangResult #cpp_method;
+    getModule:                                    #type (this: *ICompileRequest, translationUnitIndex: SlangInt, outModule: **IModule) -> SlangResult #cpp_method;
+    getSession:                                   #type (this: *ICompileRequest, outSession: **ISession) -> SlangResult #cpp_method;
+    getReflection:                                #type (this: *ICompileRequest) -> *SlangReflection #cpp_method;
+    setCommandLineCompilerMode:                   #type (this: *ICompileRequest) -> void #cpp_method;
+    addTargetCapability:                          #type (this: *ICompileRequest, targetIndex: SlangInt, capability: SlangCapabilityID) -> SlangResult #cpp_method;
+    getProgramWithEntryPoints:                    #type (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult #cpp_method;
+    isParameterLocationUsed:                      #type (this: *ICompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #cpp_method;
+    setTargetLineDirectiveMode:                   #type (this: *ICompileRequest, targetIndex: SlangInt, mode: SlangLineDirectiveMode) -> void #cpp_method;
+    setTargetForceGLSLScalarBufferLayout:         #type (this: *ICompileRequest, targetIndex: s32, forceScalarLayout: bool) -> void #cpp_method;
+    overrideDiagnosticSeverity:                   #type (this: *ICompileRequest, messageID: SlangInt, overrideSeverity: SlangSeverity) -> void #cpp_method;
+    getDiagnosticFlags:                           #type (this: *ICompileRequest) -> SlangDiagnosticFlags #cpp_method;
+    setDiagnosticFlags:                           #type (this: *ICompileRequest, flags: SlangDiagnosticFlags) -> void #cpp_method;
+    setDebugInfoFormat:                           #type (this: *ICompileRequest, debugFormat: SlangDebugInfoFormat) -> void #cpp_method;
+    setEnableEffectAnnotations:                   #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    setReportDownstreamTime:                      #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    setReportPerfBenchmark:                       #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    setSkipSPIRVValidation:                       #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    setTargetUseMinimumSlangOptimization:         #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
+    setIgnoreCapabilityCheck:                     #type (this: *ICompileRequest, value: bool) -> void #cpp_method;
+    getCompileTimeProfile:                        #type (this: *ICompileRequest, compileTimeProfile: **ISlangProfiler, shouldClear: bool) -> SlangResult #cpp_method;
+    setTargetGenerateWholeProgram:                #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
+    setTargetForceDXLayout:                       #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
+    setTargetEmbedDownstreamIR:                   #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
 }
-ICompileRequest_setFileSystem :: inline (this: *ICompileRequest, fileSystem: *ISlangFileSystem) { this.icompilerequest_vtable.setFileSystem(this, fileSystem); }
-ICompileRequest_setCompileFlags :: inline (this: *ICompileRequest, flags: SlangCompileFlags) { this.icompilerequest_vtable.setCompileFlags(this, flags); }
-ICompileRequest_getCompileFlags :: inline (this: *ICompileRequest) -> SlangCompileFlags { return this.icompilerequest_vtable.getCompileFlags(this); }
-ICompileRequest_setDumpIntermediates :: inline (this: *ICompileRequest, enable: s32) { this.icompilerequest_vtable.setDumpIntermediates(this, enable); }
-ICompileRequest_setDumpIntermediatePrefix :: inline (this: *ICompileRequest, prefix: *u8) { this.icompilerequest_vtable.setDumpIntermediatePrefix(this, prefix); }
-ICompileRequest_setLineDirectiveMode :: inline (this: *ICompileRequest, mode: SlangLineDirectiveMode) { this.icompilerequest_vtable.setLineDirectiveMode(this, mode); }
-ICompileRequest_setCodeGenTarget :: inline (this: *ICompileRequest, target: SlangCompileTarget) { this.icompilerequest_vtable.setCodeGenTarget(this, target); }
-ICompileRequest_addCodeGenTarget :: inline (this: *ICompileRequest, target: SlangCompileTarget) -> s32 { return this.icompilerequest_vtable.addCodeGenTarget(this, target); }
-ICompileRequest_setTargetProfile :: inline (this: *ICompileRequest, targetIndex: s32, profile: SlangProfileID) { this.icompilerequest_vtable.setTargetProfile(this, targetIndex, profile); }
-ICompileRequest_setTargetFlags :: inline (this: *ICompileRequest, targetIndex: s32, flags: SlangTargetFlags) { this.icompilerequest_vtable.setTargetFlags(this, targetIndex, flags); }
-ICompileRequest_setTargetFloatingPointMode :: inline (this: *ICompileRequest, targetIndex: s32, mode: SlangFloatingPointMode) { this.icompilerequest_vtable.setTargetFloatingPointMode(this, targetIndex, mode); }
-ICompileRequest_setTargetMatrixLayoutMode :: inline (this: *ICompileRequest, targetIndex: s32, mode: SlangMatrixLayoutMode) { this.icompilerequest_vtable.setTargetMatrixLayoutMode(this, targetIndex, mode); }
-ICompileRequest_setMatrixLayoutMode :: inline (this: *ICompileRequest, mode: SlangMatrixLayoutMode) { this.icompilerequest_vtable.setMatrixLayoutMode(this, mode); }
-ICompileRequest_setDebugInfoLevel :: inline (this: *ICompileRequest, level: SlangDebugInfoLevel) { this.icompilerequest_vtable.setDebugInfoLevel(this, level); }
-ICompileRequest_setOptimizationLevel :: inline (this: *ICompileRequest, level: SlangOptimizationLevel) { this.icompilerequest_vtable.setOptimizationLevel(this, level); }
-ICompileRequest_setOutputContainerFormat :: inline (this: *ICompileRequest, format: SlangContainerFormat) { this.icompilerequest_vtable.setOutputContainerFormat(this, format); }
-ICompileRequest_setPassThrough :: inline (this: *ICompileRequest, passThrough: SlangPassThrough) { this.icompilerequest_vtable.setPassThrough(this, passThrough); }
-ICompileRequest_setDiagnosticCallback :: inline (this: *ICompileRequest, callback: SlangDiagnosticCallback, userData: *void) { this.icompilerequest_vtable.setDiagnosticCallback(this, callback, userData); }
-ICompileRequest_setWriter :: inline (this: *ICompileRequest, channel: SlangWriterChannel, writer: *ISlangWriter) { this.icompilerequest_vtable.setWriter(this, channel, writer); }
-ICompileRequest_getWriter :: inline (this: *ICompileRequest, channel: SlangWriterChannel) -> *ISlangWriter { return this.icompilerequest_vtable.getWriter(this, channel); }
-ICompileRequest_addSearchPath :: inline (this: *ICompileRequest, searchDir: *u8) { this.icompilerequest_vtable.addSearchPath(this, searchDir); }
-ICompileRequest_addPreprocessorDefine :: inline (this: *ICompileRequest, key: *u8, value: *u8) { this.icompilerequest_vtable.addPreprocessorDefine(this, key, value); }
-ICompileRequest_processCommandLineArguments :: inline (this: *ICompileRequest, args: **u8, argCount: s32) -> SlangResult { return this.icompilerequest_vtable.processCommandLineArguments(this, args, argCount); }
-ICompileRequest_addTranslationUnit :: inline (this: *ICompileRequest, language: SlangSourceLanguage, name: *u8) -> s32 { return this.icompilerequest_vtable.addTranslationUnit(this, language, name); }
-ICompileRequest_setDefaultModuleName :: inline (this: *ICompileRequest, defaultModuleName: *u8) { this.icompilerequest_vtable.setDefaultModuleName(this, defaultModuleName); }
-ICompileRequest_addTranslationUnitPreprocessorDefine :: inline (this: *ICompileRequest, translationUnitIndex: s32, key: *u8, value: *u8) { this.icompilerequest_vtable.addTranslationUnitPreprocessorDefine(this, translationUnitIndex, key, value); }
-ICompileRequest_addTranslationUnitSourceFile :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8) { this.icompilerequest_vtable.addTranslationUnitSourceFile(this, translationUnitIndex, path); }
-ICompileRequest_addTranslationUnitSourceString :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, source: *u8) { this.icompilerequest_vtable.addTranslationUnitSourceString(this, translationUnitIndex, path, source); }
-ICompileRequest_addLibraryReference :: inline (this: *ICompileRequest, basePath: *u8, libData: *void, libDataSize: u64) -> SlangResult { return this.icompilerequest_vtable.addLibraryReference(this, basePath, libData, libDataSize); }
-ICompileRequest_addTranslationUnitSourceStringSpan :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBegin: *u8, sourceEnd: *u8) { this.icompilerequest_vtable.addTranslationUnitSourceStringSpan(this, translationUnitIndex, path, sourceBegin, sourceEnd); }
-ICompileRequest_addTranslationUnitSourceBlob :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBlob: *ISlangBlob) { this.icompilerequest_vtable.addTranslationUnitSourceBlob(this, translationUnitIndex, path, sourceBlob); }
-ICompileRequest_addEntryPoint :: inline (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage) -> s32 { return this.icompilerequest_vtable.addEntryPoint(this, translationUnitIndex, name, stage); }
-ICompileRequest_addEntryPointEx :: inline (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage, genericArgCount: s32, genericArgs: **u8) -> s32 { return this.icompilerequest_vtable.addEntryPointEx(this, translationUnitIndex, name, stage, genericArgCount, genericArgs); }
-ICompileRequest_setGlobalGenericArgs :: inline (this: *ICompileRequest, genericArgCount: s32, genericArgs: **u8) -> SlangResult { return this.icompilerequest_vtable.setGlobalGenericArgs(this, genericArgCount, genericArgs); }
-ICompileRequest_setTypeNameForGlobalExistentialTypeParam :: inline (this: *ICompileRequest, slotIndex: s32, typeName: *u8) -> SlangResult { return this.icompilerequest_vtable.setTypeNameForGlobalExistentialTypeParam(this, slotIndex, typeName); }
-ICompileRequest_setTypeNameForEntryPointExistentialTypeParam :: inline (this: *ICompileRequest, entryPointIndex: s32, slotIndex: s32, typeName: *u8) -> SlangResult { return this.icompilerequest_vtable.setTypeNameForEntryPointExistentialTypeParam(this, entryPointIndex, slotIndex, typeName); }
-ICompileRequest_setAllowGLSLInput :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setAllowGLSLInput(this, value); }
-ICompileRequest_compile :: inline (this: *ICompileRequest) -> SlangResult { return this.icompilerequest_vtable.compile(this); }
-ICompileRequest_getDiagnosticOutput :: inline (this: *ICompileRequest) -> *u8 { return this.icompilerequest_vtable.getDiagnosticOutput(this); }
-ICompileRequest_getDiagnosticOutputBlob :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.icompilerequest_vtable.getDiagnosticOutputBlob(this, outBlob); }
-ICompileRequest_getDependencyFileCount :: inline (this: *ICompileRequest) -> s32 { return this.icompilerequest_vtable.getDependencyFileCount(this); }
-ICompileRequest_getDependencyFilePath :: inline (this: *ICompileRequest, index: s32) -> *u8 { return this.icompilerequest_vtable.getDependencyFilePath(this, index); }
-ICompileRequest_getTranslationUnitCount :: inline (this: *ICompileRequest) -> s32 { return this.icompilerequest_vtable.getTranslationUnitCount(this); }
-ICompileRequest_getEntryPointSource :: inline (this: *ICompileRequest, entryPointIndex: s32) -> *u8 { return this.icompilerequest_vtable.getEntryPointSource(this, entryPointIndex); }
-ICompileRequest_getEntryPointCode :: inline (this: *ICompileRequest, entryPointIndex: s32, outSize: *u64) -> *void { return this.icompilerequest_vtable.getEntryPointCode(this, entryPointIndex, outSize); }
-ICompileRequest_getEntryPointCodeBlob :: inline (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult { return this.icompilerequest_vtable.getEntryPointCodeBlob(this, entryPointIndex, targetIndex, outBlob); }
-ICompileRequest_getEntryPointHostCallable :: inline (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult { return this.icompilerequest_vtable.getEntryPointHostCallable(this, entryPointIndex, targetIndex, outSharedLibrary); }
-ICompileRequest_getTargetCodeBlob :: inline (this: *ICompileRequest, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult { return this.icompilerequest_vtable.getTargetCodeBlob(this, targetIndex, outBlob); }
-ICompileRequest_getTargetHostCallable :: inline (this: *ICompileRequest, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult { return this.icompilerequest_vtable.getTargetHostCallable(this, targetIndex, outSharedLibrary); }
-ICompileRequest_getCompileRequestCode :: inline (this: *ICompileRequest, outSize: *u64) -> *void { return this.icompilerequest_vtable.getCompileRequestCode(this, outSize); }
-ICompileRequest_getCompileRequestResultAsFileSystem :: inline (this: *ICompileRequest) -> *ISlangMutableFileSystem { return this.icompilerequest_vtable.getCompileRequestResultAsFileSystem(this); }
-ICompileRequest_getContainerCode :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.icompilerequest_vtable.getContainerCode(this, outBlob); }
-ICompileRequest_loadRepro :: inline (this: *ICompileRequest, fileSystem: *ISlangFileSystem, data: *void, size: u64) -> SlangResult { return this.icompilerequest_vtable.loadRepro(this, fileSystem, data, size); }
-ICompileRequest_saveRepro :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.icompilerequest_vtable.saveRepro(this, outBlob); }
-ICompileRequest_enableReproCapture :: inline (this: *ICompileRequest) -> SlangResult { return this.icompilerequest_vtable.enableReproCapture(this); }
-ICompileRequest_getProgram :: inline (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult { return this.icompilerequest_vtable.getProgram(this, outProgram); }
-ICompileRequest_getEntryPoint :: inline (this: *ICompileRequest, entryPointIndex: SlangInt, outEntryPoint: **IComponentType) -> SlangResult { return this.icompilerequest_vtable.getEntryPoint(this, entryPointIndex, outEntryPoint); }
-ICompileRequest_getModule :: inline (this: *ICompileRequest, translationUnitIndex: SlangInt, outModule: **IModule) -> SlangResult { return this.icompilerequest_vtable.getModule(this, translationUnitIndex, outModule); }
-ICompileRequest_getSession :: inline (this: *ICompileRequest, outSession: **ISession) -> SlangResult { return this.icompilerequest_vtable.getSession(this, outSession); }
-ICompileRequest_getReflection :: inline (this: *ICompileRequest) -> *SlangReflection { return this.icompilerequest_vtable.getReflection(this); }
-ICompileRequest_setCommandLineCompilerMode :: inline (this: *ICompileRequest) { this.icompilerequest_vtable.setCommandLineCompilerMode(this); }
-ICompileRequest_addTargetCapability :: inline (this: *ICompileRequest, targetIndex: SlangInt, capability: SlangCapabilityID) -> SlangResult { return this.icompilerequest_vtable.addTargetCapability(this, targetIndex, capability); }
-ICompileRequest_getProgramWithEntryPoints :: inline (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult { return this.icompilerequest_vtable.getProgramWithEntryPoints(this, outProgram); }
-ICompileRequest_isParameterLocationUsed :: inline (this: *ICompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult { return this.icompilerequest_vtable.isParameterLocationUsed(this, entryPointIndex, targetIndex, category, spaceIndex, registerIndex, outUsed); }
-ICompileRequest_setTargetLineDirectiveMode :: inline (this: *ICompileRequest, targetIndex: SlangInt, mode: SlangLineDirectiveMode) { this.icompilerequest_vtable.setTargetLineDirectiveMode(this, targetIndex, mode); }
-ICompileRequest_setTargetForceGLSLScalarBufferLayout :: inline (this: *ICompileRequest, targetIndex: s32, forceScalarLayout: bool) { this.icompilerequest_vtable.setTargetForceGLSLScalarBufferLayout(this, targetIndex, forceScalarLayout); }
-ICompileRequest_overrideDiagnosticSeverity :: inline (this: *ICompileRequest, messageID: SlangInt, overrideSeverity: SlangSeverity) { this.icompilerequest_vtable.overrideDiagnosticSeverity(this, messageID, overrideSeverity); }
-ICompileRequest_getDiagnosticFlags :: inline (this: *ICompileRequest) -> SlangDiagnosticFlags { return this.icompilerequest_vtable.getDiagnosticFlags(this); }
-ICompileRequest_setDiagnosticFlags :: inline (this: *ICompileRequest, flags: SlangDiagnosticFlags) { this.icompilerequest_vtable.setDiagnosticFlags(this, flags); }
-ICompileRequest_setDebugInfoFormat :: inline (this: *ICompileRequest, debugFormat: SlangDebugInfoFormat) { this.icompilerequest_vtable.setDebugInfoFormat(this, debugFormat); }
-ICompileRequest_setEnableEffectAnnotations :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setEnableEffectAnnotations(this, value); }
-ICompileRequest_setReportDownstreamTime :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setReportDownstreamTime(this, value); }
-ICompileRequest_setReportPerfBenchmark :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setReportPerfBenchmark(this, value); }
-ICompileRequest_setSkipSPIRVValidation :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setSkipSPIRVValidation(this, value); }
-ICompileRequest_setTargetUseMinimumSlangOptimization :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.icompilerequest_vtable.setTargetUseMinimumSlangOptimization(this, targetIndex, value); }
-ICompileRequest_setIgnoreCapabilityCheck :: inline (this: *ICompileRequest, value: bool) { this.icompilerequest_vtable.setIgnoreCapabilityCheck(this, value); }
-ICompileRequest_getCompileTimeProfile :: inline (this: *ICompileRequest, compileTimeProfile: **ISlangProfiler, shouldClear: bool) -> SlangResult { return this.icompilerequest_vtable.getCompileTimeProfile(this, compileTimeProfile, shouldClear); }
-ICompileRequest_setTargetGenerateWholeProgram :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.icompilerequest_vtable.setTargetGenerateWholeProgram(this, targetIndex, value); }
-ICompileRequest_setTargetForceDXLayout :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.icompilerequest_vtable.setTargetForceDXLayout(this, targetIndex, value); }
-ICompileRequest_setTargetEmbedDownstreamIR :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.icompilerequest_vtable.setTargetEmbedDownstreamIR(this, targetIndex, value); }
+ICompileRequest_setFileSystem :: inline (this: *ICompileRequest, fileSystem: *ISlangFileSystem) { this.vtable.setFileSystem(this, fileSystem); }
 
-vtable :: (obj: *ICompileRequest) -> *ICompileRequest_VTable { return obj.icompilerequest_vtable; }
+ICompileRequest_setCompileFlags :: inline (this: *ICompileRequest, flags: SlangCompileFlags) { this.vtable.setCompileFlags(this, flags); }
+
+ICompileRequest_getCompileFlags :: inline (this: *ICompileRequest) -> SlangCompileFlags { return this.vtable.getCompileFlags(this); }
+
+ICompileRequest_setDumpIntermediates :: inline (this: *ICompileRequest, enable: s32) { this.vtable.setDumpIntermediates(this, enable); }
+
+ICompileRequest_setDumpIntermediatePrefix :: inline (this: *ICompileRequest, prefix: *u8) { this.vtable.setDumpIntermediatePrefix(this, prefix); }
+
+ICompileRequest_setLineDirectiveMode :: inline (this: *ICompileRequest, mode: SlangLineDirectiveMode) { this.vtable.setLineDirectiveMode(this, mode); }
+
+ICompileRequest_setCodeGenTarget :: inline (this: *ICompileRequest, target: SlangCompileTarget) { this.vtable.setCodeGenTarget(this, target); }
+
+ICompileRequest_addCodeGenTarget :: inline (this: *ICompileRequest, target: SlangCompileTarget) -> s32 { return this.vtable.addCodeGenTarget(this, target); }
+
+ICompileRequest_setTargetProfile :: inline (this: *ICompileRequest, targetIndex: s32, profile: SlangProfileID) { this.vtable.setTargetProfile(this, targetIndex, profile); }
+
+ICompileRequest_setTargetFlags :: inline (this: *ICompileRequest, targetIndex: s32, flags: SlangTargetFlags) { this.vtable.setTargetFlags(this, targetIndex, flags); }
+
+ICompileRequest_setTargetFloatingPointMode :: inline (this: *ICompileRequest, targetIndex: s32, mode: SlangFloatingPointMode) { this.vtable.setTargetFloatingPointMode(this, targetIndex, mode); }
+
+ICompileRequest_setTargetMatrixLayoutMode :: inline (this: *ICompileRequest, targetIndex: s32, mode: SlangMatrixLayoutMode) { this.vtable.setTargetMatrixLayoutMode(this, targetIndex, mode); }
+
+ICompileRequest_setMatrixLayoutMode :: inline (this: *ICompileRequest, mode: SlangMatrixLayoutMode) { this.vtable.setMatrixLayoutMode(this, mode); }
+
+ICompileRequest_setDebugInfoLevel :: inline (this: *ICompileRequest, level: SlangDebugInfoLevel) { this.vtable.setDebugInfoLevel(this, level); }
+
+ICompileRequest_setOptimizationLevel :: inline (this: *ICompileRequest, level: SlangOptimizationLevel) { this.vtable.setOptimizationLevel(this, level); }
+
+ICompileRequest_setOutputContainerFormat :: inline (this: *ICompileRequest, format: SlangContainerFormat) { this.vtable.setOutputContainerFormat(this, format); }
+
+ICompileRequest_setPassThrough :: inline (this: *ICompileRequest, passThrough: SlangPassThrough) { this.vtable.setPassThrough(this, passThrough); }
+
+ICompileRequest_setDiagnosticCallback :: inline (this: *ICompileRequest, callback: SlangDiagnosticCallback, userData: *void) { this.vtable.setDiagnosticCallback(this, callback, userData); }
+
+ICompileRequest_setWriter :: inline (this: *ICompileRequest, channel: SlangWriterChannel, writer: *ISlangWriter) { this.vtable.setWriter(this, channel, writer); }
+
+ICompileRequest_getWriter :: inline (this: *ICompileRequest, channel: SlangWriterChannel) -> *ISlangWriter { return this.vtable.getWriter(this, channel); }
+
+ICompileRequest_addSearchPath :: inline (this: *ICompileRequest, searchDir: *u8) { this.vtable.addSearchPath(this, searchDir); }
+
+ICompileRequest_addPreprocessorDefine :: inline (this: *ICompileRequest, key: *u8, value: *u8) { this.vtable.addPreprocessorDefine(this, key, value); }
+
+ICompileRequest_processCommandLineArguments :: inline (this: *ICompileRequest, args: **u8, argCount: s32) -> SlangResult { return this.vtable.processCommandLineArguments(this, args, argCount); }
+
+ICompileRequest_addTranslationUnit :: inline (this: *ICompileRequest, language: SlangSourceLanguage, name: *u8) -> s32 { return this.vtable.addTranslationUnit(this, language, name); }
+
+ICompileRequest_setDefaultModuleName :: inline (this: *ICompileRequest, defaultModuleName: *u8) { this.vtable.setDefaultModuleName(this, defaultModuleName); }
+
+ICompileRequest_addTranslationUnitPreprocessorDefine :: inline (this: *ICompileRequest, translationUnitIndex: s32, key: *u8, value: *u8) { this.vtable.addTranslationUnitPreprocessorDefine(this, translationUnitIndex, key, value); }
+
+ICompileRequest_addTranslationUnitSourceFile :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8) { this.vtable.addTranslationUnitSourceFile(this, translationUnitIndex, path); }
+
+ICompileRequest_addTranslationUnitSourceString :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, source: *u8) { this.vtable.addTranslationUnitSourceString(this, translationUnitIndex, path, source); }
+
+ICompileRequest_addLibraryReference :: inline (this: *ICompileRequest, basePath: *u8, libData: *void, libDataSize: u64) -> SlangResult { return this.vtable.addLibraryReference(this, basePath, libData, libDataSize); }
+
+ICompileRequest_addTranslationUnitSourceStringSpan :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBegin: *u8, sourceEnd: *u8) { this.vtable.addTranslationUnitSourceStringSpan(this, translationUnitIndex, path, sourceBegin, sourceEnd); }
+
+ICompileRequest_addTranslationUnitSourceBlob :: inline (this: *ICompileRequest, translationUnitIndex: s32, path: *u8, sourceBlob: *ISlangBlob) { this.vtable.addTranslationUnitSourceBlob(this, translationUnitIndex, path, sourceBlob); }
+
+ICompileRequest_addEntryPoint :: inline (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage) -> s32 { return this.vtable.addEntryPoint(this, translationUnitIndex, name, stage); }
+
+ICompileRequest_addEntryPointEx :: inline (this: *ICompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage, genericArgCount: s32, genericArgs: **u8) -> s32 { return this.vtable.addEntryPointEx(this, translationUnitIndex, name, stage, genericArgCount, genericArgs); }
+
+ICompileRequest_setGlobalGenericArgs :: inline (this: *ICompileRequest, genericArgCount: s32, genericArgs: **u8) -> SlangResult { return this.vtable.setGlobalGenericArgs(this, genericArgCount, genericArgs); }
+
+ICompileRequest_setTypeNameForGlobalExistentialTypeParam :: inline (this: *ICompileRequest, slotIndex: s32, typeName: *u8) -> SlangResult { return this.vtable.setTypeNameForGlobalExistentialTypeParam(this, slotIndex, typeName); }
+
+ICompileRequest_setTypeNameForEntryPointExistentialTypeParam :: inline (this: *ICompileRequest, entryPointIndex: s32, slotIndex: s32, typeName: *u8) -> SlangResult { return this.vtable.setTypeNameForEntryPointExistentialTypeParam(this, entryPointIndex, slotIndex, typeName); }
+
+ICompileRequest_setAllowGLSLInput :: inline (this: *ICompileRequest, value: bool) { this.vtable.setAllowGLSLInput(this, value); }
+
+ICompileRequest_compile :: inline (this: *ICompileRequest) -> SlangResult { return this.vtable.compile(this); }
+
+ICompileRequest_getDiagnosticOutput :: inline (this: *ICompileRequest) -> *u8 { return this.vtable.getDiagnosticOutput(this); }
+
+ICompileRequest_getDiagnosticOutputBlob :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.getDiagnosticOutputBlob(this, outBlob); }
+
+ICompileRequest_getDependencyFileCount :: inline (this: *ICompileRequest) -> s32 { return this.vtable.getDependencyFileCount(this); }
+
+ICompileRequest_getDependencyFilePath :: inline (this: *ICompileRequest, index: s32) -> *u8 { return this.vtable.getDependencyFilePath(this, index); }
+
+ICompileRequest_getTranslationUnitCount :: inline (this: *ICompileRequest) -> s32 { return this.vtable.getTranslationUnitCount(this); }
+
+ICompileRequest_getEntryPointSource :: inline (this: *ICompileRequest, entryPointIndex: s32) -> *u8 { return this.vtable.getEntryPointSource(this, entryPointIndex); }
+
+ICompileRequest_getEntryPointCode :: inline (this: *ICompileRequest, entryPointIndex: s32, outSize: *u64) -> *void { return this.vtable.getEntryPointCode(this, entryPointIndex, outSize); }
+
+ICompileRequest_getEntryPointCodeBlob :: inline (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.getEntryPointCodeBlob(this, entryPointIndex, targetIndex, outBlob); }
+
+ICompileRequest_getEntryPointHostCallable :: inline (this: *ICompileRequest, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult { return this.vtable.getEntryPointHostCallable(this, entryPointIndex, targetIndex, outSharedLibrary); }
+
+ICompileRequest_getTargetCodeBlob :: inline (this: *ICompileRequest, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.getTargetCodeBlob(this, targetIndex, outBlob); }
+
+ICompileRequest_getTargetHostCallable :: inline (this: *ICompileRequest, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult { return this.vtable.getTargetHostCallable(this, targetIndex, outSharedLibrary); }
+
+ICompileRequest_getCompileRequestCode :: inline (this: *ICompileRequest, outSize: *u64) -> *void { return this.vtable.getCompileRequestCode(this, outSize); }
+
+ICompileRequest_getCompileRequestResultAsFileSystem :: inline (this: *ICompileRequest) -> *ISlangMutableFileSystem { return this.vtable.getCompileRequestResultAsFileSystem(this); }
+
+ICompileRequest_getContainerCode :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.getContainerCode(this, outBlob); }
+
+ICompileRequest_loadRepro :: inline (this: *ICompileRequest, fileSystem: *ISlangFileSystem, data: *void, size: u64) -> SlangResult { return this.vtable.loadRepro(this, fileSystem, data, size); }
+
+ICompileRequest_saveRepro :: inline (this: *ICompileRequest, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.saveRepro(this, outBlob); }
+
+ICompileRequest_enableReproCapture :: inline (this: *ICompileRequest) -> SlangResult { return this.vtable.enableReproCapture(this); }
+
+ICompileRequest_getProgram :: inline (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult { return this.vtable.getProgram(this, outProgram); }
+
+ICompileRequest_getEntryPoint :: inline (this: *ICompileRequest, entryPointIndex: SlangInt, outEntryPoint: **IComponentType) -> SlangResult { return this.vtable.getEntryPoint(this, entryPointIndex, outEntryPoint); }
+
+ICompileRequest_getModule :: inline (this: *ICompileRequest, translationUnitIndex: SlangInt, outModule: **IModule) -> SlangResult { return this.vtable.getModule(this, translationUnitIndex, outModule); }
+
+ICompileRequest_getSession :: inline (this: *ICompileRequest, outSession: **ISession) -> SlangResult { return this.vtable.getSession(this, outSession); }
+
+ICompileRequest_getReflection :: inline (this: *ICompileRequest) -> *SlangReflection { return this.vtable.getReflection(this); }
+
+ICompileRequest_setCommandLineCompilerMode :: inline (this: *ICompileRequest) { this.vtable.setCommandLineCompilerMode(this); }
+
+ICompileRequest_addTargetCapability :: inline (this: *ICompileRequest, targetIndex: SlangInt, capability: SlangCapabilityID) -> SlangResult { return this.vtable.addTargetCapability(this, targetIndex, capability); }
+
+ICompileRequest_getProgramWithEntryPoints :: inline (this: *ICompileRequest, outProgram: **IComponentType) -> SlangResult { return this.vtable.getProgramWithEntryPoints(this, outProgram); }
+
+ICompileRequest_isParameterLocationUsed :: inline (this: *ICompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult { return this.vtable.isParameterLocationUsed(this, entryPointIndex, targetIndex, category, spaceIndex, registerIndex, outUsed); }
+
+ICompileRequest_setTargetLineDirectiveMode :: inline (this: *ICompileRequest, targetIndex: SlangInt, mode: SlangLineDirectiveMode) { this.vtable.setTargetLineDirectiveMode(this, targetIndex, mode); }
+
+ICompileRequest_setTargetForceGLSLScalarBufferLayout :: inline (this: *ICompileRequest, targetIndex: s32, forceScalarLayout: bool) { this.vtable.setTargetForceGLSLScalarBufferLayout(this, targetIndex, forceScalarLayout); }
+
+ICompileRequest_overrideDiagnosticSeverity :: inline (this: *ICompileRequest, messageID: SlangInt, overrideSeverity: SlangSeverity) { this.vtable.overrideDiagnosticSeverity(this, messageID, overrideSeverity); }
+
+ICompileRequest_getDiagnosticFlags :: inline (this: *ICompileRequest) -> SlangDiagnosticFlags { return this.vtable.getDiagnosticFlags(this); }
+
+ICompileRequest_setDiagnosticFlags :: inline (this: *ICompileRequest, flags: SlangDiagnosticFlags) { this.vtable.setDiagnosticFlags(this, flags); }
+
+ICompileRequest_setDebugInfoFormat :: inline (this: *ICompileRequest, debugFormat: SlangDebugInfoFormat) { this.vtable.setDebugInfoFormat(this, debugFormat); }
+
+ICompileRequest_setEnableEffectAnnotations :: inline (this: *ICompileRequest, value: bool) { this.vtable.setEnableEffectAnnotations(this, value); }
+
+ICompileRequest_setReportDownstreamTime :: inline (this: *ICompileRequest, value: bool) { this.vtable.setReportDownstreamTime(this, value); }
+
+ICompileRequest_setReportPerfBenchmark :: inline (this: *ICompileRequest, value: bool) { this.vtable.setReportPerfBenchmark(this, value); }
+
+ICompileRequest_setSkipSPIRVValidation :: inline (this: *ICompileRequest, value: bool) { this.vtable.setSkipSPIRVValidation(this, value); }
+
+ICompileRequest_setTargetUseMinimumSlangOptimization :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetUseMinimumSlangOptimization(this, targetIndex, value); }
+
+ICompileRequest_setIgnoreCapabilityCheck :: inline (this: *ICompileRequest, value: bool) { this.vtable.setIgnoreCapabilityCheck(this, value); }
+
+ICompileRequest_getCompileTimeProfile :: inline (this: *ICompileRequest, compileTimeProfile: **ISlangProfiler, shouldClear: bool) -> SlangResult { return this.vtable.getCompileTimeProfile(this, compileTimeProfile, shouldClear); }
+
+ICompileRequest_setTargetGenerateWholeProgram :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetGenerateWholeProgram(this, targetIndex, value); }
+
+ICompileRequest_setTargetForceDXLayout :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetForceDXLayout(this, targetIndex, value); }
+
+ICompileRequest_setTargetEmbedDownstreamIR :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetEmbedDownstreamIR(this, targetIndex, value); }
+
+vtable :: (obj: *ICompileRequest) -> *ICompileRequest_VTable { return obj.vtable; }
 
 
 BufferReflection :: struct {}
@@ -895,12 +1021,20 @@ GenericArgReflection :: union {
 }
 
 Attribute :: struct {
+    using attribute__raw:   Attribute__RAW;
     __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
+// Attribute without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Attribute
+Attribute__RAW :: struct {}
 
 UserAttribute :: Attribute;
 
 TypeReflection :: struct {
+    using typereflection__raw: TypeReflection__RAW;
+    __empty_struct_padding:    u8; // C++ makes empty structs have length 1
+}
+// TypeReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeReflection
+TypeReflection__RAW :: struct {
     Kind :: enum s32 {
         None                 :: 0;
         Struct               :: 1;
@@ -921,6 +1055,7 @@ TypeReflection :: struct {
         Feedback             :: 17;
         Pointer              :: 18;
         DynamicResource      :: 19;
+        MeshOutput           :: 15;
     }
 
     ScalarType :: enum SlangScalarTypeIntegral {
@@ -939,7 +1074,6 @@ TypeReflection :: struct {
         Int16   :: 12;
         UInt16  :: 13;
     }
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
 
 ParameterCategory :: enum SlangParameterCategoryIntegral {
@@ -1010,10 +1144,18 @@ BindingType :: enum SlangBindingTypeIntegral {
 }
 
 TypeLayoutReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using typelayoutreflection__raw: TypeLayoutReflection__RAW;
+    __empty_struct_padding:          u8; // C++ makes empty structs have length 1
 }
+// TypeLayoutReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeLayoutReflection
+TypeLayoutReflection__RAW :: struct {}
 
 Modifier :: struct {
+    using modifier__raw:    Modifier__RAW;
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+}
+// Modifier without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Modifier
+Modifier__RAW :: struct {
     ID :: enum SlangModifierIDIntegral {
         Shared         :: 0;
         NoDiff         :: 1;
@@ -1027,34 +1169,51 @@ Modifier :: struct {
         Out            :: 9;
         InOut          :: 10;
     }
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
 
 VariableReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using variablereflection__raw: VariableReflection__RAW;
+    __empty_struct_padding:        u8; // C++ makes empty structs have length 1
 }
+// VariableReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from VariableReflection
+VariableReflection__RAW :: struct {}
 
 VariableLayoutReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using variablelayoutreflection__raw: VariableLayoutReflection__RAW;
+    __empty_struct_padding:              u8; // C++ makes empty structs have length 1
 }
+// VariableLayoutReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from VariableLayoutReflection
+VariableLayoutReflection__RAW :: struct {}
 
 FunctionReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using functionreflection__raw: FunctionReflection__RAW;
+    __empty_struct_padding:        u8; // C++ makes empty structs have length 1
 }
+// FunctionReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from FunctionReflection
+FunctionReflection__RAW :: struct {}
 
 GenericReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using genericreflection__raw: GenericReflection__RAW;
+    __empty_struct_padding:       u8; // C++ makes empty structs have length 1
 }
+// GenericReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from GenericReflection
+GenericReflection__RAW :: struct {}
 
 EntryPointReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using entrypointreflection__raw: EntryPointReflection__RAW;
+    __empty_struct_padding:          u8; // C++ makes empty structs have length 1
 }
+// EntryPointReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from EntryPointReflection
+EntryPointReflection__RAW :: struct {}
 
 EntryPointLayout :: EntryPointReflection;
 
 TypeParameterReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using typeparameterreflection__raw: TypeParameterReflection__RAW;
+    __empty_struct_padding:             u8; // C++ makes empty structs have length 1
 }
+// TypeParameterReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeParameterReflection
+TypeParameterReflection__RAW :: struct {}
 
 LayoutRules :: enum SlangLayoutRulesIntegral {
     Default                  :: 0;
@@ -1065,10 +1224,18 @@ ProgramLayout :: ShaderReflection;
 GenericArgType :: SlangReflectionGenericArgType;
 
 ShaderReflection :: struct {
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+    using shaderreflection__raw: ShaderReflection__RAW;
+    __empty_struct_padding:      u8; // C++ makes empty structs have length 1
 }
+// ShaderReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from ShaderReflection
+ShaderReflection__RAW :: struct {}
 
 DeclReflection :: struct {
+    using declreflection__raw: DeclReflection__RAW;
+    __empty_struct_padding:    u8; // C++ makes empty structs have length 1
+}
+// DeclReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from DeclReflection
+DeclReflection__RAW :: struct {
     Kind :: enum s32 {
         Unsupported :: 0;
         Struct      :: 1;
@@ -1087,7 +1254,7 @@ DeclReflection :: struct {
             parent: *DeclReflection;
             count:  u32;
             index:  u32;
-        }
+        } #no_padding
     }
 
     IteratedList :: struct {
@@ -1100,18 +1267,26 @@ DeclReflection :: struct {
             index:  u32;
         }
     }
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
 
 CompileCoreModuleFlags :: u32;
 CompileCoreModuleFlag :: struct {
+    using compilecoremoduleflag__raw: CompileCoreModuleFlag__RAW;
+    __empty_struct_padding:           u8; // C++ makes empty structs have length 1
+}
+// CompileCoreModuleFlag without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from CompileCoreModuleFlag
+CompileCoreModuleFlag__RAW :: struct {
     Enum :: enum CompileCoreModuleFlags {
         WriteDocumentation :: 1;
     }
-    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
 
 IBlob :: ISlangBlob;
+
+BuiltinModuleName :: enum s32 {
+    Core :: 0;
+    GLSL :: 1;
+}
 
 /** A global session for interaction with the Slang library.
 
@@ -1124,66 +1299,100 @@ a single global session should only be used from a single thread at
 a time.
 */
 IGlobalSession :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; iglobalsession_vtable: *IGlobalSession_VTable;
+    vtable: *IGlobalSession_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 IGlobalSession_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    createSession: (this: *IGlobalSession, desc: *SessionDesc, outSession: **ISession) -> SlangResult #cpp_method;
-    findProfile: (this: *IGlobalSession, name: *u8) -> SlangProfileID #cpp_method;
-    setDownstreamCompilerPath: (this: *IGlobalSession, passThrough: SlangPassThrough, path: *u8) -> void #cpp_method;
-    setDownstreamCompilerPrelude: (this: *IGlobalSession, passThrough: SlangPassThrough, preludeText: *u8) -> void #cpp_method;
-    getDownstreamCompilerPrelude: (this: *IGlobalSession, passThrough: SlangPassThrough, outPrelude: **ISlangBlob) -> void #cpp_method;
-    getBuildTagString: (this: *IGlobalSession) -> *u8 #cpp_method;
-    setDefaultDownstreamCompiler: (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, defaultCompiler: SlangPassThrough) -> SlangResult #cpp_method;
-    getDefaultDownstreamCompiler: (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage) -> SlangPassThrough #cpp_method;
-    setLanguagePrelude: (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, preludeText: *u8) -> void #cpp_method;
-    getLanguagePrelude: (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, outPrelude: **ISlangBlob) -> void #cpp_method;
-    createCompileRequest: (this: *IGlobalSession, outCompileRequest: **ICompileRequest) -> SlangResult #cpp_method;
-    addBuiltins: (this: *IGlobalSession, sourcePath: *u8, sourceString: *u8) -> void #cpp_method;
-    setSharedLibraryLoader: (this: *IGlobalSession, loader: *ISlangSharedLibraryLoader) -> void #cpp_method;
-    getSharedLibraryLoader: (this: *IGlobalSession) -> *ISlangSharedLibraryLoader #cpp_method;
-    checkCompileTargetSupport: (this: *IGlobalSession, target: SlangCompileTarget) -> SlangResult #cpp_method;
-    checkPassThroughSupport: (this: *IGlobalSession, passThrough: SlangPassThrough) -> SlangResult #cpp_method;
-    compileCoreModule: (this: *IGlobalSession, flags: CompileCoreModuleFlags) -> SlangResult #cpp_method;
-    loadCoreModule: (this: *IGlobalSession, coreModule: *void, coreModuleSizeInBytes: u64) -> SlangResult #cpp_method;
-    saveCoreModule: (this: *IGlobalSession, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    findCapability: (this: *IGlobalSession, name: *u8) -> SlangCapabilityID #cpp_method;
-    setDownstreamCompilerForTransition: (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget, compiler: SlangPassThrough) -> void #cpp_method;
-    getDownstreamCompilerForTransition: (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget) -> SlangPassThrough #cpp_method;
-    getCompilerElapsedTime: (this: *IGlobalSession, outTotalTime: *float64, outDownstreamTime: *float64) -> void #cpp_method;
-    setSPIRVCoreGrammar: (this: *IGlobalSession, jsonPath: *u8) -> SlangResult #cpp_method;
-    parseCommandLineArguments: (this: *IGlobalSession, argc: s32, argv: **u8, outSessionDesc: *SessionDesc, outAuxAllocation: **ISlangUnknown) -> SlangResult #cpp_method;
-    getSessionDescDigest: (this: *IGlobalSession, sessionDesc: *SessionDesc, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    using vtable:                       ISlangUnknown_VTable;
+    createSession:                      #type (this: *IGlobalSession, desc: *SessionDesc, outSession: **ISession) -> SlangResult #cpp_method;
+    findProfile:                        #type (this: *IGlobalSession, name: *u8) -> SlangProfileID #cpp_method;
+    setDownstreamCompilerPath:          #type (this: *IGlobalSession, passThrough: SlangPassThrough, path: *u8) -> void #cpp_method;
+    setDownstreamCompilerPrelude:       #type (this: *IGlobalSession, passThrough: SlangPassThrough, preludeText: *u8) -> void #cpp_method;
+    getDownstreamCompilerPrelude:       #type (this: *IGlobalSession, passThrough: SlangPassThrough, outPrelude: **ISlangBlob) -> void #cpp_method;
+    getBuildTagString:                  #type (this: *IGlobalSession) -> *u8 #cpp_method;
+    setDefaultDownstreamCompiler:       #type (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, defaultCompiler: SlangPassThrough) -> SlangResult #cpp_method;
+    getDefaultDownstreamCompiler:       #type (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage) -> SlangPassThrough #cpp_method;
+    setLanguagePrelude:                 #type (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, preludeText: *u8) -> void #cpp_method;
+    getLanguagePrelude:                 #type (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, outPrelude: **ISlangBlob) -> void #cpp_method;
+    createCompileRequest:               #type (this: *IGlobalSession, outCompileRequest: **ICompileRequest) -> SlangResult #cpp_method;
+    addBuiltins:                        #type (this: *IGlobalSession, sourcePath: *u8, sourceString: *u8) -> void #cpp_method;
+    setSharedLibraryLoader:             #type (this: *IGlobalSession, loader: *ISlangSharedLibraryLoader) -> void #cpp_method;
+    getSharedLibraryLoader:             #type (this: *IGlobalSession) -> *ISlangSharedLibraryLoader #cpp_method;
+    checkCompileTargetSupport:          #type (this: *IGlobalSession, target: SlangCompileTarget) -> SlangResult #cpp_method;
+    checkPassThroughSupport:            #type (this: *IGlobalSession, passThrough: SlangPassThrough) -> SlangResult #cpp_method;
+    compileCoreModule:                  #type (this: *IGlobalSession, flags: CompileCoreModuleFlags) -> SlangResult #cpp_method;
+    loadCoreModule:                     #type (this: *IGlobalSession, coreModule: *void, coreModuleSizeInBytes: u64) -> SlangResult #cpp_method;
+    saveCoreModule:                     #type (this: *IGlobalSession, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    findCapability:                     #type (this: *IGlobalSession, name: *u8) -> SlangCapabilityID #cpp_method;
+    setDownstreamCompilerForTransition: #type (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget, compiler: SlangPassThrough) -> void #cpp_method;
+    getDownstreamCompilerForTransition: #type (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget) -> SlangPassThrough #cpp_method;
+    getCompilerElapsedTime:             #type (this: *IGlobalSession, outTotalTime: *float64, outDownstreamTime: *float64) -> void #cpp_method;
+    setSPIRVCoreGrammar:                #type (this: *IGlobalSession, jsonPath: *u8) -> SlangResult #cpp_method;
+    parseCommandLineArguments:          #type (this: *IGlobalSession, argc: s32, argv: **u8, outSessionDesc: *SessionDesc, outAuxAllocation: **ISlangUnknown) -> SlangResult #cpp_method;
+    getSessionDescDigest:               #type (this: *IGlobalSession, sessionDesc: *SessionDesc, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    compileBuiltinModule:               #type (this: *IGlobalSession, module: BuiltinModuleName, flags: CompileCoreModuleFlags) -> SlangResult #cpp_method;
+    loadBuiltinModule:                  #type (this: *IGlobalSession, module: BuiltinModuleName, moduleData: *void, sizeInBytes: u64) -> SlangResult #cpp_method;
+    saveBuiltinModule:                  #type (this: *IGlobalSession, module: BuiltinModuleName, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
 }
-IGlobalSession_createSession :: inline (this: *IGlobalSession, desc: *SessionDesc, outSession: **ISession) -> SlangResult { return this.iglobalsession_vtable.createSession(this, desc, outSession); }
-IGlobalSession_findProfile :: inline (this: *IGlobalSession, name: *u8) -> SlangProfileID { return this.iglobalsession_vtable.findProfile(this, name); }
-IGlobalSession_setDownstreamCompilerPath :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, path: *u8) { this.iglobalsession_vtable.setDownstreamCompilerPath(this, passThrough, path); }
-IGlobalSession_setDownstreamCompilerPrelude :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, preludeText: *u8) { this.iglobalsession_vtable.setDownstreamCompilerPrelude(this, passThrough, preludeText); }
-IGlobalSession_getDownstreamCompilerPrelude :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, outPrelude: **ISlangBlob) { this.iglobalsession_vtable.getDownstreamCompilerPrelude(this, passThrough, outPrelude); }
-IGlobalSession_getBuildTagString :: inline (this: *IGlobalSession) -> *u8 { return this.iglobalsession_vtable.getBuildTagString(this); }
-IGlobalSession_setDefaultDownstreamCompiler :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, defaultCompiler: SlangPassThrough) -> SlangResult { return this.iglobalsession_vtable.setDefaultDownstreamCompiler(this, sourceLanguage, defaultCompiler); }
-IGlobalSession_getDefaultDownstreamCompiler :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage) -> SlangPassThrough { return this.iglobalsession_vtable.getDefaultDownstreamCompiler(this, sourceLanguage); }
-IGlobalSession_setLanguagePrelude :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, preludeText: *u8) { this.iglobalsession_vtable.setLanguagePrelude(this, sourceLanguage, preludeText); }
-IGlobalSession_getLanguagePrelude :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, outPrelude: **ISlangBlob) { this.iglobalsession_vtable.getLanguagePrelude(this, sourceLanguage, outPrelude); }
-IGlobalSession_createCompileRequest :: inline (this: *IGlobalSession, outCompileRequest: **ICompileRequest) -> SlangResult { return this.iglobalsession_vtable.createCompileRequest(this, outCompileRequest); }
-IGlobalSession_addBuiltins :: inline (this: *IGlobalSession, sourcePath: *u8, sourceString: *u8) { this.iglobalsession_vtable.addBuiltins(this, sourcePath, sourceString); }
-IGlobalSession_setSharedLibraryLoader :: inline (this: *IGlobalSession, loader: *ISlangSharedLibraryLoader) { this.iglobalsession_vtable.setSharedLibraryLoader(this, loader); }
-IGlobalSession_getSharedLibraryLoader :: inline (this: *IGlobalSession) -> *ISlangSharedLibraryLoader { return this.iglobalsession_vtable.getSharedLibraryLoader(this); }
-IGlobalSession_checkCompileTargetSupport :: inline (this: *IGlobalSession, target: SlangCompileTarget) -> SlangResult { return this.iglobalsession_vtable.checkCompileTargetSupport(this, target); }
-IGlobalSession_checkPassThroughSupport :: inline (this: *IGlobalSession, passThrough: SlangPassThrough) -> SlangResult { return this.iglobalsession_vtable.checkPassThroughSupport(this, passThrough); }
-IGlobalSession_compileCoreModule :: inline (this: *IGlobalSession, flags: CompileCoreModuleFlags) -> SlangResult { return this.iglobalsession_vtable.compileCoreModule(this, flags); }
-IGlobalSession_loadCoreModule :: inline (this: *IGlobalSession, coreModule: *void, coreModuleSizeInBytes: u64) -> SlangResult { return this.iglobalsession_vtable.loadCoreModule(this, coreModule, coreModuleSizeInBytes); }
-IGlobalSession_saveCoreModule :: inline (this: *IGlobalSession, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult { return this.iglobalsession_vtable.saveCoreModule(this, archiveType, outBlob); }
-IGlobalSession_findCapability :: inline (this: *IGlobalSession, name: *u8) -> SlangCapabilityID { return this.iglobalsession_vtable.findCapability(this, name); }
-IGlobalSession_setDownstreamCompilerForTransition :: inline (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget, compiler: SlangPassThrough) { this.iglobalsession_vtable.setDownstreamCompilerForTransition(this, source, target, compiler); }
-IGlobalSession_getDownstreamCompilerForTransition :: inline (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget) -> SlangPassThrough { return this.iglobalsession_vtable.getDownstreamCompilerForTransition(this, source, target); }
-IGlobalSession_getCompilerElapsedTime :: inline (this: *IGlobalSession, outTotalTime: *float64, outDownstreamTime: *float64) { this.iglobalsession_vtable.getCompilerElapsedTime(this, outTotalTime, outDownstreamTime); }
-IGlobalSession_setSPIRVCoreGrammar :: inline (this: *IGlobalSession, jsonPath: *u8) -> SlangResult { return this.iglobalsession_vtable.setSPIRVCoreGrammar(this, jsonPath); }
-IGlobalSession_parseCommandLineArguments :: inline (this: *IGlobalSession, argc: s32, argv: **u8, outSessionDesc: *SessionDesc, outAuxAllocation: **ISlangUnknown) -> SlangResult { return this.iglobalsession_vtable.parseCommandLineArguments(this, argc, argv, outSessionDesc, outAuxAllocation); }
-IGlobalSession_getSessionDescDigest :: inline (this: *IGlobalSession, sessionDesc: *SessionDesc, outBlob: **ISlangBlob) -> SlangResult { return this.iglobalsession_vtable.getSessionDescDigest(this, sessionDesc, outBlob); }
+IGlobalSession_createSession :: inline (this: *IGlobalSession, desc: *SessionDesc, outSession: **ISession) -> SlangResult { return this.vtable.createSession(this, desc, outSession); }
 
-vtable :: (obj: *IGlobalSession) -> *IGlobalSession_VTable { return obj.iglobalsession_vtable; }
+IGlobalSession_findProfile :: inline (this: *IGlobalSession, name: *u8) -> SlangProfileID { return this.vtable.findProfile(this, name); }
+
+IGlobalSession_setDownstreamCompilerPath :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, path: *u8) { this.vtable.setDownstreamCompilerPath(this, passThrough, path); }
+
+IGlobalSession_setDownstreamCompilerPrelude :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, preludeText: *u8) { this.vtable.setDownstreamCompilerPrelude(this, passThrough, preludeText); }
+
+IGlobalSession_getDownstreamCompilerPrelude :: inline (this: *IGlobalSession, passThrough: SlangPassThrough, outPrelude: **ISlangBlob) { this.vtable.getDownstreamCompilerPrelude(this, passThrough, outPrelude); }
+
+IGlobalSession_getBuildTagString :: inline (this: *IGlobalSession) -> *u8 { return this.vtable.getBuildTagString(this); }
+
+IGlobalSession_setDefaultDownstreamCompiler :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, defaultCompiler: SlangPassThrough) -> SlangResult { return this.vtable.setDefaultDownstreamCompiler(this, sourceLanguage, defaultCompiler); }
+
+IGlobalSession_getDefaultDownstreamCompiler :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage) -> SlangPassThrough { return this.vtable.getDefaultDownstreamCompiler(this, sourceLanguage); }
+
+IGlobalSession_setLanguagePrelude :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, preludeText: *u8) { this.vtable.setLanguagePrelude(this, sourceLanguage, preludeText); }
+
+IGlobalSession_getLanguagePrelude :: inline (this: *IGlobalSession, sourceLanguage: SlangSourceLanguage, outPrelude: **ISlangBlob) { this.vtable.getLanguagePrelude(this, sourceLanguage, outPrelude); }
+
+IGlobalSession_createCompileRequest :: inline (this: *IGlobalSession, outCompileRequest: **ICompileRequest) -> SlangResult { return this.vtable.createCompileRequest(this, outCompileRequest); }
+
+IGlobalSession_addBuiltins :: inline (this: *IGlobalSession, sourcePath: *u8, sourceString: *u8) { this.vtable.addBuiltins(this, sourcePath, sourceString); }
+
+IGlobalSession_setSharedLibraryLoader :: inline (this: *IGlobalSession, loader: *ISlangSharedLibraryLoader) { this.vtable.setSharedLibraryLoader(this, loader); }
+
+IGlobalSession_getSharedLibraryLoader :: inline (this: *IGlobalSession) -> *ISlangSharedLibraryLoader { return this.vtable.getSharedLibraryLoader(this); }
+
+IGlobalSession_checkCompileTargetSupport :: inline (this: *IGlobalSession, target: SlangCompileTarget) -> SlangResult { return this.vtable.checkCompileTargetSupport(this, target); }
+
+IGlobalSession_checkPassThroughSupport :: inline (this: *IGlobalSession, passThrough: SlangPassThrough) -> SlangResult { return this.vtable.checkPassThroughSupport(this, passThrough); }
+
+IGlobalSession_compileCoreModule :: inline (this: *IGlobalSession, flags: CompileCoreModuleFlags) -> SlangResult { return this.vtable.compileCoreModule(this, flags); }
+
+IGlobalSession_loadCoreModule :: inline (this: *IGlobalSession, coreModule: *void, coreModuleSizeInBytes: u64) -> SlangResult { return this.vtable.loadCoreModule(this, coreModule, coreModuleSizeInBytes); }
+
+IGlobalSession_saveCoreModule :: inline (this: *IGlobalSession, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.saveCoreModule(this, archiveType, outBlob); }
+
+IGlobalSession_findCapability :: inline (this: *IGlobalSession, name: *u8) -> SlangCapabilityID { return this.vtable.findCapability(this, name); }
+
+IGlobalSession_setDownstreamCompilerForTransition :: inline (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget, compiler: SlangPassThrough) { this.vtable.setDownstreamCompilerForTransition(this, source, target, compiler); }
+
+IGlobalSession_getDownstreamCompilerForTransition :: inline (this: *IGlobalSession, source: SlangCompileTarget, target: SlangCompileTarget) -> SlangPassThrough { return this.vtable.getDownstreamCompilerForTransition(this, source, target); }
+
+IGlobalSession_getCompilerElapsedTime :: inline (this: *IGlobalSession, outTotalTime: *float64, outDownstreamTime: *float64) { this.vtable.getCompilerElapsedTime(this, outTotalTime, outDownstreamTime); }
+
+IGlobalSession_setSPIRVCoreGrammar :: inline (this: *IGlobalSession, jsonPath: *u8) -> SlangResult { return this.vtable.setSPIRVCoreGrammar(this, jsonPath); }
+
+IGlobalSession_parseCommandLineArguments :: inline (this: *IGlobalSession, argc: s32, argv: **u8, outSessionDesc: *SessionDesc, outAuxAllocation: **ISlangUnknown) -> SlangResult { return this.vtable.parseCommandLineArguments(this, argc, argv, outSessionDesc, outAuxAllocation); }
+
+IGlobalSession_getSessionDescDigest :: inline (this: *IGlobalSession, sessionDesc: *SessionDesc, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.getSessionDescDigest(this, sessionDesc, outBlob); }
+
+IGlobalSession_compileBuiltinModule :: inline (this: *IGlobalSession, module: BuiltinModuleName, flags: CompileCoreModuleFlags) -> SlangResult { return this.vtable.compileBuiltinModule(this, module, flags); }
+
+IGlobalSession_loadBuiltinModule :: inline (this: *IGlobalSession, module: BuiltinModuleName, moduleData: *void, sizeInBytes: u64) -> SlangResult { return this.vtable.loadBuiltinModule(this, module, moduleData, sizeInBytes); }
+
+IGlobalSession_saveBuiltinModule :: inline (this: *IGlobalSession, module: BuiltinModuleName, archiveType: SlangArchiveType, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.saveBuiltinModule(this, module, archiveType, outBlob); }
+
+vtable :: (obj: *IGlobalSession) -> *IGlobalSession_VTable { return obj.vtable; }
 
 
 /** Description of a code generation target.
@@ -1273,6 +1482,10 @@ SessionDesc :: struct {
     /** Number of additional compiler option entries.
     */
     compilerOptionEntryCount: u32 = 0;
+
+    /** Whether to skip SPIRV validation.
+    */
+    skipSPIRVValidation       := false;
 }
 
 ContainerType :: enum s32 {
@@ -1309,63 +1522,109 @@ Applications wishing to control the memory usage for compiled
 and loaded code should use multiple sessions.
 */
 ISession :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; isession_vtable: *ISession_VTable;
+    vtable: *ISession_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISession_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    getGlobalSession: (this: *ISession) -> *IGlobalSession #cpp_method;
-    loadModule: (this: *ISession, moduleName: *u8, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
-    loadModuleFromSource: (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
-    createCompositeComponentType: (this: *ISession, componentTypes: **IComponentType, componentTypeCount: SlangInt, outCompositeComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
-    specializeType: (this: *ISession, type: *TypeReflection, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outDiagnostics: **ISlangBlob = null) -> *TypeReflection #cpp_method;
-    getTypeLayout: (this: *ISession, type: *TypeReflection, targetIndex: SlangInt = 0, rules: LayoutRules = .Default, outDiagnostics: **ISlangBlob = null) -> *TypeLayoutReflection #cpp_method;
-    getContainerType: (this: *ISession, elementType: *TypeReflection, containerType: ContainerType, outDiagnostics: **ISlangBlob = null) -> *TypeReflection #cpp_method;
-    getDynamicType: (this: *ISession) -> *TypeReflection #cpp_method;
-    getTypeRTTIMangledName: (this: *ISession, type: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    getTypeConformanceWitnessMangledName: (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    getTypeConformanceWitnessSequentialID: (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outId: *u32) -> SlangResult #cpp_method;
-    createCompileRequest: (this: *ISession, outCompileRequest: **SlangCompileRequest) -> SlangResult #cpp_method;
-    createTypeConformanceComponentType: (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outConformance: **ITypeConformance, conformanceIdOverride: SlangInt, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
-    loadModuleFromIRBlob: (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
-    getLoadedModuleCount: (this: *ISession) -> SlangInt #cpp_method;
-    getLoadedModule: (this: *ISession, index: SlangInt) -> *IModule #cpp_method;
-    isBinaryModuleUpToDate: (this: *ISession, modulePath: *u8, binaryModuleBlob: *IBlob) -> bool #cpp_method;
-    loadModuleFromSourceString: (this: *ISession, moduleName: *u8, path: *u8, _string: *u8, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
+    using vtable:                          ISlangUnknown_VTable;
+    getGlobalSession:                      #type (this: *ISession) -> *IGlobalSession #cpp_method;
+    loadModule:                            #type (this: *ISession, moduleName: *u8, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
+    loadModuleFromSource:                  #type (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
+    createCompositeComponentType:          #type (this: *ISession, componentTypes: **IComponentType, componentTypeCount: SlangInt, outCompositeComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
+    specializeType:                        #type (this: *ISession, type: *TypeReflection, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outDiagnostics: **ISlangBlob = null) -> *TypeReflection #cpp_method;
+    getTypeLayout:                         #type (this: *ISession, type: *TypeReflection, targetIndex: SlangInt = 0, rules: LayoutRules = .Default, outDiagnostics: **ISlangBlob = null) -> *TypeLayoutReflection #cpp_method;
+    getContainerType:                      #type (this: *ISession, elementType: *TypeReflection, containerType: ContainerType, outDiagnostics: **ISlangBlob = null) -> *TypeReflection #cpp_method;
+    getDynamicType:                        #type (this: *ISession) -> *TypeReflection #cpp_method;
+    getTypeRTTIMangledName:                #type (this: *ISession, type: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    getTypeConformanceWitnessMangledName:  #type (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    getTypeConformanceWitnessSequentialID: #type (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outId: *u32) -> SlangResult #cpp_method;
+    createCompileRequest:                  #type (this: *ISession, outCompileRequest: **SlangCompileRequest) -> SlangResult #cpp_method;
+    createTypeConformanceComponentType:    #type (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outConformance: **ITypeConformance, conformanceIdOverride: SlangInt, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
+    loadModuleFromIRBlob:                  #type (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
+    getLoadedModuleCount:                  #type (this: *ISession) -> SlangInt #cpp_method;
+    getLoadedModule:                       #type (this: *ISession, index: SlangInt) -> *IModule #cpp_method;
+    isBinaryModuleUpToDate:                #type (this: *ISession, modulePath: *u8, binaryModuleBlob: *IBlob) -> bool #cpp_method;
+    loadModuleFromSourceString:            #type (this: *ISession, moduleName: *u8, path: *u8, _string: *u8, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
+    getDynamicObjectRTTIBytes:             #type (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outRTTIDataBuffer: *u32, bufferSizeInBytes: u32) -> SlangResult #cpp_method;
+    loadModuleInfoFromIRBlob:              #type (this: *ISession, source: *IBlob, outModuleVersion: *SlangInt, outModuleCompilerVersion: **u8, outModuleName: **u8) -> SlangResult #cpp_method;
 }
-ISession_getGlobalSession :: inline (this: *ISession) -> *IGlobalSession { return this.isession_vtable.getGlobalSession(this); }
-ISession_loadModule :: inline (this: *ISession, moduleName: *u8, outDiagnostics: **IBlob = null) -> *IModule { return this.isession_vtable.loadModule(this, moduleName, outDiagnostics); }
-ISession_loadModuleFromSource :: inline (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule { return this.isession_vtable.loadModuleFromSource(this, moduleName, path, source, outDiagnostics); }
-ISession_createCompositeComponentType :: inline (this: *ISession, componentTypes: **IComponentType, componentTypeCount: SlangInt, outCompositeComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.isession_vtable.createCompositeComponentType(this, componentTypes, componentTypeCount, outCompositeComponentType, outDiagnostics); }
-ISession_specializeType :: inline (this: *ISession, type: *TypeReflection, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outDiagnostics: **ISlangBlob = null) -> *TypeReflection { return this.isession_vtable.specializeType(this, type, specializationArgs, specializationArgCount, outDiagnostics); }
-ISession_getTypeLayout :: inline (this: *ISession, type: *TypeReflection, targetIndex: SlangInt = 0, rules: LayoutRules = .Default, outDiagnostics: **ISlangBlob = null) -> *TypeLayoutReflection { return this.isession_vtable.getTypeLayout(this, type, targetIndex, rules, outDiagnostics); }
-ISession_getContainerType :: inline (this: *ISession, elementType: *TypeReflection, containerType: ContainerType, outDiagnostics: **ISlangBlob = null) -> *TypeReflection { return this.isession_vtable.getContainerType(this, elementType, containerType, outDiagnostics); }
-ISession_getDynamicType :: inline (this: *ISession) -> *TypeReflection { return this.isession_vtable.getDynamicType(this); }
-ISession_getTypeRTTIMangledName :: inline (this: *ISession, type: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult { return this.isession_vtable.getTypeRTTIMangledName(this, type, outNameBlob); }
-ISession_getTypeConformanceWitnessMangledName :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult { return this.isession_vtable.getTypeConformanceWitnessMangledName(this, type, interfaceType, outNameBlob); }
-ISession_getTypeConformanceWitnessSequentialID :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outId: *u32) -> SlangResult { return this.isession_vtable.getTypeConformanceWitnessSequentialID(this, type, interfaceType, outId); }
-ISession_createCompileRequest :: inline (this: *ISession, outCompileRequest: **SlangCompileRequest) -> SlangResult { return this.isession_vtable.createCompileRequest(this, outCompileRequest); }
-ISession_createTypeConformanceComponentType :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outConformance: **ITypeConformance, conformanceIdOverride: SlangInt, outDiagnostics: **ISlangBlob) -> SlangResult { return this.isession_vtable.createTypeConformanceComponentType(this, type, interfaceType, outConformance, conformanceIdOverride, outDiagnostics); }
-ISession_loadModuleFromIRBlob :: inline (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule { return this.isession_vtable.loadModuleFromIRBlob(this, moduleName, path, source, outDiagnostics); }
-ISession_getLoadedModuleCount :: inline (this: *ISession) -> SlangInt { return this.isession_vtable.getLoadedModuleCount(this); }
-ISession_getLoadedModule :: inline (this: *ISession, index: SlangInt) -> *IModule { return this.isession_vtable.getLoadedModule(this, index); }
-ISession_isBinaryModuleUpToDate :: inline (this: *ISession, modulePath: *u8, binaryModuleBlob: *IBlob) -> bool { return this.isession_vtable.isBinaryModuleUpToDate(this, modulePath, binaryModuleBlob); }
-ISession_loadModuleFromSourceString :: inline (this: *ISession, moduleName: *u8, path: *u8, _string: *u8, outDiagnostics: **IBlob = null) -> *IModule { return this.isession_vtable.loadModuleFromSourceString(this, moduleName, path, _string, outDiagnostics); }
+ISession_getGlobalSession :: inline (this: *ISession) -> *IGlobalSession { return this.vtable.getGlobalSession(this); }
 
-vtable :: (obj: *ISession) -> *ISession_VTable { return obj.isession_vtable; }
+ISession_loadModule :: inline (this: *ISession, moduleName: *u8, outDiagnostics: **IBlob = null) -> *IModule { return this.vtable.loadModule(this, moduleName, outDiagnostics); }
+
+ISession_loadModuleFromSource :: inline (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule { return this.vtable.loadModuleFromSource(this, moduleName, path, source, outDiagnostics); }
+
+ISession_createCompositeComponentType :: inline (this: *ISession, componentTypes: **IComponentType, componentTypeCount: SlangInt, outCompositeComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.vtable.createCompositeComponentType(this, componentTypes, componentTypeCount, outCompositeComponentType, outDiagnostics); }
+
+ISession_specializeType :: inline (this: *ISession, type: *TypeReflection, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outDiagnostics: **ISlangBlob = null) -> *TypeReflection { return this.vtable.specializeType(this, type, specializationArgs, specializationArgCount, outDiagnostics); }
+
+ISession_getTypeLayout :: inline (this: *ISession, type: *TypeReflection, targetIndex: SlangInt = 0, rules: LayoutRules = .Default, outDiagnostics: **ISlangBlob = null) -> *TypeLayoutReflection { return this.vtable.getTypeLayout(this, type, targetIndex, rules, outDiagnostics); }
+
+ISession_getContainerType :: inline (this: *ISession, elementType: *TypeReflection, containerType: ContainerType, outDiagnostics: **ISlangBlob = null) -> *TypeReflection { return this.vtable.getContainerType(this, elementType, containerType, outDiagnostics); }
+
+ISession_getDynamicType :: inline (this: *ISession) -> *TypeReflection { return this.vtable.getDynamicType(this); }
+
+ISession_getTypeRTTIMangledName :: inline (this: *ISession, type: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult { return this.vtable.getTypeRTTIMangledName(this, type, outNameBlob); }
+
+ISession_getTypeConformanceWitnessMangledName :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outNameBlob: **ISlangBlob) -> SlangResult { return this.vtable.getTypeConformanceWitnessMangledName(this, type, interfaceType, outNameBlob); }
+
+ISession_getTypeConformanceWitnessSequentialID :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outId: *u32) -> SlangResult { return this.vtable.getTypeConformanceWitnessSequentialID(this, type, interfaceType, outId); }
+
+ISession_createCompileRequest :: inline (this: *ISession, outCompileRequest: **SlangCompileRequest) -> SlangResult { return this.vtable.createCompileRequest(this, outCompileRequest); }
+
+ISession_createTypeConformanceComponentType :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outConformance: **ITypeConformance, conformanceIdOverride: SlangInt, outDiagnostics: **ISlangBlob) -> SlangResult { return this.vtable.createTypeConformanceComponentType(this, type, interfaceType, outConformance, conformanceIdOverride, outDiagnostics); }
+
+ISession_loadModuleFromIRBlob :: inline (this: *ISession, moduleName: *u8, path: *u8, source: *IBlob, outDiagnostics: **IBlob = null) -> *IModule { return this.vtable.loadModuleFromIRBlob(this, moduleName, path, source, outDiagnostics); }
+
+ISession_getLoadedModuleCount :: inline (this: *ISession) -> SlangInt { return this.vtable.getLoadedModuleCount(this); }
+ISession_getLoadedModule :: inline (this: *ISession, index: SlangInt) -> *IModule { return this.vtable.getLoadedModule(this, index); }
+
+ISession_isBinaryModuleUpToDate :: inline (this: *ISession, modulePath: *u8, binaryModuleBlob: *IBlob) -> bool { return this.vtable.isBinaryModuleUpToDate(this, modulePath, binaryModuleBlob); }
+
+ISession_loadModuleFromSourceString :: inline (this: *ISession, moduleName: *u8, path: *u8, _string: *u8, outDiagnostics: **IBlob = null) -> *IModule { return this.vtable.loadModuleFromSourceString(this, moduleName, path, _string, outDiagnostics); }
+
+ISession_getDynamicObjectRTTIBytes :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outRTTIDataBuffer: *u32, bufferSizeInBytes: u32) -> SlangResult { return this.vtable.getDynamicObjectRTTIBytes(this, type, interfaceType, outRTTIDataBuffer, bufferSizeInBytes); }
+
+ISession_loadModuleInfoFromIRBlob :: inline (this: *ISession, source: *IBlob, outModuleVersion: *SlangInt, outModuleCompilerVersion: **u8, outModuleName: **u8) -> SlangResult { return this.vtable.loadModuleInfoFromIRBlob(this, source, outModuleVersion, outModuleCompilerVersion, outModuleName); }
+
+vtable :: (obj: *ISession) -> *ISession_VTable { return obj.vtable; }
 
 
 IMetadata :: struct {
-    #as using islangcastable: ISlangCastable;
-    #place islangcastable; imetadata_vtable: *IMetadata_VTable;
+    vtable: *IMetadata_VTable;
+    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
 }
 IMetadata_VTable :: struct #type_info_none {
-    using islangcastable: ISlangCastable_VTable;
-    isParameterLocationUsed: (this: *IMetadata, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #cpp_method;
+    using,except(vtable) vtable:                  ISlangCastable_VTable;
+    isParameterLocationUsed: #type (this: *IMetadata, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #cpp_method;
+    getDebugBuildIdentifier: #type (this: *IMetadata) -> *u8 #cpp_method;
 }
-IMetadata_isParameterLocationUsed :: inline (this: *IMetadata, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult { return this.imetadata_vtable.isParameterLocationUsed(this, category, spaceIndex, registerIndex, outUsed); }
+IMetadata_isParameterLocationUsed :: inline (this: *IMetadata, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult { return this.vtable.isParameterLocationUsed(this, category, spaceIndex, registerIndex, outUsed); }
 
-vtable :: (obj: *IMetadata) -> *IMetadata_VTable { return obj.imetadata_vtable; }
+IMetadata_getDebugBuildIdentifier :: inline (this: *IMetadata) -> *u8 { return this.vtable.getDebugBuildIdentifier(this); }
+
+vtable :: (obj: *IMetadata) -> *IMetadata_VTable { return obj.vtable; }
+
+
+/** Compile result for storing and retrieving multiple output blobs.
+This is needed for features such as separate debug compilation which
+output both base and debug spirv.
+*/
+ICompileResult :: struct {
+    vtable: *ICompileResult_VTable;
+    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+}
+ICompileResult_VTable :: struct #type_info_none {
+    using,except(vtable) vtable:       ISlangCastable_VTable;
+    getItemCount: #type (this: *ICompileResult) -> u32 #cpp_method;
+    getItemData:  #type (this: *ICompileResult, index: u32, outblob: **IBlob) -> SlangResult #cpp_method;
+    getMetadata:  #type (this: *ICompileResult, outMetadata: **IMetadata) -> SlangResult #cpp_method;
+}
+ICompileResult_getItemCount :: inline (this: *ICompileResult) -> u32 { return this.vtable.getItemCount(this); }
+ICompileResult_getItemData :: inline (this: *ICompileResult, index: u32, outblob: **IBlob) -> SlangResult { return this.vtable.getItemData(this, index, outblob); }
+ICompileResult_getMetadata :: inline (this: *ICompileResult, outMetadata: **IMetadata) -> SlangResult { return this.vtable.getMetadata(this, outMetadata); }
+
+vtable :: (obj: *ICompileResult) -> *ICompileResult_VTable { return obj.vtable; }
 
 
 /** A component type is a unit of shader code layout, reflection, and linking.
@@ -1430,60 +1689,99 @@ offsets/bindings to the shader parameters it contains.
 
 */
 IComponentType :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; icomponenttype_vtable: *IComponentType_VTable;
+    vtable: *IComponentType_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 IComponentType_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    getSession: (this: *IComponentType) -> *ISession #cpp_method;
-    getLayout: (this: *IComponentType, targetIndex: SlangInt = 0, outDiagnostics: **IBlob = null) -> *ProgramLayout #cpp_method;
-    getSpecializationParamCount: (this: *IComponentType) -> SlangInt #cpp_method;
-    getEntryPointCode: (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
-    getResultAsFileSystem: (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outFileSystem: **ISlangMutableFileSystem) -> SlangResult #cpp_method;
-    getEntryPointHash: (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outHash: **IBlob) -> void #cpp_method;
-    specialize: (this: *IComponentType, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outSpecializedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
-    link: (this: *IComponentType, outLinkedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
-    getEntryPointHostCallable: (this: *IComponentType, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
-    renameEntryPoint: (this: *IComponentType, newName: *u8, outEntryPoint: **IComponentType) -> SlangResult #cpp_method;
-    linkWithOptions: (this: *IComponentType, outLinkedComponentType: **IComponentType, compilerOptionEntryCount: u32, compilerOptionEntries: *CompilerOptionEntry, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
-    getTargetCode: (this: *IComponentType, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
-    getTargetMetadata: (this: *IComponentType, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
-    getEntryPointMetadata: (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    using vtable:                ISlangUnknown_VTable;
+    getSession:                  #type (this: *IComponentType) -> *ISession #cpp_method;
+    getLayout:                   #type (this: *IComponentType, targetIndex: SlangInt = 0, outDiagnostics: **IBlob = null) -> *ProgramLayout #cpp_method;
+    getSpecializationParamCount: #type (this: *IComponentType) -> SlangInt #cpp_method;
+    getEntryPointCode:           #type (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getResultAsFileSystem:       #type (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outFileSystem: **ISlangMutableFileSystem) -> SlangResult #cpp_method;
+    getEntryPointHash:           #type (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outHash: **IBlob) -> void #cpp_method;
+    specialize:                  #type (this: *IComponentType, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outSpecializedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
+    link:                        #type (this: *IComponentType, outLinkedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
+    getEntryPointHostCallable:   #type (this: *IComponentType, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    renameEntryPoint:            #type (this: *IComponentType, newName: *u8, outEntryPoint: **IComponentType) -> SlangResult #cpp_method;
+    linkWithOptions:             #type (this: *IComponentType, outLinkedComponentType: **IComponentType, compilerOptionEntryCount: u32, compilerOptionEntries: *CompilerOptionEntry, outDiagnostics: **ISlangBlob = null) -> SlangResult #cpp_method;
+    getTargetCode:               #type (this: *IComponentType, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getTargetMetadata:           #type (this: *IComponentType, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getEntryPointMetadata:       #type (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
 }
-IComponentType_getSession :: inline (this: *IComponentType) -> *ISession { return this.icomponenttype_vtable.getSession(this); }
-IComponentType_getLayout :: inline (this: *IComponentType, targetIndex: SlangInt = 0, outDiagnostics: **IBlob = null) -> *ProgramLayout { return this.icomponenttype_vtable.getLayout(this, targetIndex, outDiagnostics); }
-IComponentType_getSpecializationParamCount :: inline (this: *IComponentType) -> SlangInt { return this.icomponenttype_vtable.getSpecializationParamCount(this); }
-IComponentType_getEntryPointCode :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.icomponenttype_vtable.getEntryPointCode(this, entryPointIndex, targetIndex, outCode, outDiagnostics); }
-IComponentType_getResultAsFileSystem :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outFileSystem: **ISlangMutableFileSystem) -> SlangResult { return this.icomponenttype_vtable.getResultAsFileSystem(this, entryPointIndex, targetIndex, outFileSystem); }
-IComponentType_getEntryPointHash :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outHash: **IBlob) { this.icomponenttype_vtable.getEntryPointHash(this, entryPointIndex, targetIndex, outHash); }
-IComponentType_specialize :: inline (this: *IComponentType, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outSpecializedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.icomponenttype_vtable.specialize(this, specializationArgs, specializationArgCount, outSpecializedComponentType, outDiagnostics); }
-IComponentType_link :: inline (this: *IComponentType, outLinkedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.icomponenttype_vtable.link(this, outLinkedComponentType, outDiagnostics); }
-IComponentType_getEntryPointHostCallable :: inline (this: *IComponentType, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult { return this.icomponenttype_vtable.getEntryPointHostCallable(this, entryPointIndex, targetIndex, outSharedLibrary, outDiagnostics); }
-IComponentType_renameEntryPoint :: inline (this: *IComponentType, newName: *u8, outEntryPoint: **IComponentType) -> SlangResult { return this.icomponenttype_vtable.renameEntryPoint(this, newName, outEntryPoint); }
-IComponentType_linkWithOptions :: inline (this: *IComponentType, outLinkedComponentType: **IComponentType, compilerOptionEntryCount: u32, compilerOptionEntries: *CompilerOptionEntry, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.icomponenttype_vtable.linkWithOptions(this, outLinkedComponentType, compilerOptionEntryCount, compilerOptionEntries, outDiagnostics); }
-IComponentType_getTargetCode :: inline (this: *IComponentType, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.icomponenttype_vtable.getTargetCode(this, targetIndex, outCode, outDiagnostics); }
-IComponentType_getTargetMetadata :: inline (this: *IComponentType, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult { return this.icomponenttype_vtable.getTargetMetadata(this, targetIndex, outMetadata, outDiagnostics); }
-IComponentType_getEntryPointMetadata :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult { return this.icomponenttype_vtable.getEntryPointMetadata(this, entryPointIndex, targetIndex, outMetadata, outDiagnostics); }
+IComponentType_getSession :: inline (this: *IComponentType) -> *ISession { return this.vtable.getSession(this); }
 
-vtable :: (obj: *IComponentType) -> *IComponentType_VTable { return obj.icomponenttype_vtable; }
+IComponentType_getLayout :: inline (this: *IComponentType, targetIndex: SlangInt = 0, outDiagnostics: **IBlob = null) -> *ProgramLayout { return this.vtable.getLayout(this, targetIndex, outDiagnostics); }
+
+IComponentType_getSpecializationParamCount :: inline (this: *IComponentType) -> SlangInt { return this.vtable.getSpecializationParamCount(this); }
+
+IComponentType_getEntryPointCode :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getEntryPointCode(this, entryPointIndex, targetIndex, outCode, outDiagnostics); }
+
+IComponentType_getResultAsFileSystem :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outFileSystem: **ISlangMutableFileSystem) -> SlangResult { return this.vtable.getResultAsFileSystem(this, entryPointIndex, targetIndex, outFileSystem); }
+
+IComponentType_getEntryPointHash :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outHash: **IBlob) { this.vtable.getEntryPointHash(this, entryPointIndex, targetIndex, outHash); }
+
+IComponentType_specialize :: inline (this: *IComponentType, specializationArgs: *SpecializationArg, specializationArgCount: SlangInt, outSpecializedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.vtable.specialize(this, specializationArgs, specializationArgCount, outSpecializedComponentType, outDiagnostics); }
+
+IComponentType_link :: inline (this: *IComponentType, outLinkedComponentType: **IComponentType, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.vtable.link(this, outLinkedComponentType, outDiagnostics); }
+
+IComponentType_getEntryPointHostCallable :: inline (this: *IComponentType, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getEntryPointHostCallable(this, entryPointIndex, targetIndex, outSharedLibrary, outDiagnostics); }
+
+IComponentType_renameEntryPoint :: inline (this: *IComponentType, newName: *u8, outEntryPoint: **IComponentType) -> SlangResult { return this.vtable.renameEntryPoint(this, newName, outEntryPoint); }
+
+IComponentType_linkWithOptions :: inline (this: *IComponentType, outLinkedComponentType: **IComponentType, compilerOptionEntryCount: u32, compilerOptionEntries: *CompilerOptionEntry, outDiagnostics: **ISlangBlob = null) -> SlangResult { return this.vtable.linkWithOptions(this, outLinkedComponentType, compilerOptionEntryCount, compilerOptionEntries, outDiagnostics); }
+
+IComponentType_getTargetCode :: inline (this: *IComponentType, targetIndex: SlangInt, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getTargetCode(this, targetIndex, outCode, outDiagnostics); }
+
+IComponentType_getTargetMetadata :: inline (this: *IComponentType, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getTargetMetadata(this, targetIndex, outMetadata, outDiagnostics); }
+
+IComponentType_getEntryPointMetadata :: inline (this: *IComponentType, entryPointIndex: SlangInt, targetIndex: SlangInt, outMetadata: **IMetadata, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getEntryPointMetadata(this, entryPointIndex, targetIndex, outMetadata, outDiagnostics); }
+
+vtable :: (obj: *IComponentType) -> *IComponentType_VTable { return obj.vtable; }
 
 
 IEntryPoint :: struct {
-    #as using icomponenttype: IComponentType;
-    #place icomponenttype; ientrypoint_vtable: *IEntryPoint_VTable;
+    vtable: *IEntryPoint_VTable;
+    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
 }
 IEntryPoint_VTable :: struct #type_info_none {
-    using icomponenttype: IComponentType_VTable;
-    getFunctionReflection: (this: *IEntryPoint) -> *FunctionReflection #cpp_method;
+    using,except(vtable) vtable:                IComponentType_VTable;
+    getFunctionReflection: #type (this: *IEntryPoint) -> *FunctionReflection #cpp_method;
 }
-IEntryPoint_getFunctionReflection :: inline (this: *IEntryPoint) -> *FunctionReflection { return this.ientrypoint_vtable.getFunctionReflection(this); }
+IEntryPoint_getFunctionReflection :: inline (this: *IEntryPoint) -> *FunctionReflection { return this.vtable.getFunctionReflection(this); }
 
-vtable :: (obj: *IEntryPoint) -> *IEntryPoint_VTable { return obj.ientrypoint_vtable; }
+vtable :: (obj: *IEntryPoint) -> *IEntryPoint_VTable { return obj.vtable; }
 
 
 ITypeConformance :: struct {
-    #as using icomponenttype: IComponentType;
+    vtable: *IComponentType_VTable;
+    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
 }
+
+/** IComponentType2 is a component type used for getting separate debug data.
+
+This interface is used for getting separate debug data, introduced here to
+avoid breaking backwards compatibility of the IComponentType interface.
+
+The `getTargetCompileResult` and `getEntryPointCompileResult` functions
+are used to get the base and debug spirv, and metadata containing the
+debug build identifier.
+*/
+IComponentType2 :: struct {
+    vtable: *IComponentType2_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+}
+IComponentType2_VTable :: struct #type_info_none {
+    using vtable:               ISlangUnknown_VTable;
+    getTargetCompileResult:     #type (this: *IComponentType2, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getEntryPointCompileResult: #type (this: *IComponentType2, entryPointIndex: SlangInt, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+}
+IComponentType2_getTargetCompileResult :: inline (this: *IComponentType2, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getTargetCompileResult(this, targetIndex, outCompileResult, outDiagnostics); }
+
+IComponentType2_getEntryPointCompileResult :: inline (this: *IComponentType2, entryPointIndex: SlangInt, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getEntryPointCompileResult(this, entryPointIndex, targetIndex, outCompileResult, outDiagnostics); }
+
+vtable :: (obj: *IComponentType2) -> *IComponentType2_VTable { return obj.vtable; }
+
 
 /** A module is the granularity of shader code compilation and loading.
 
@@ -1499,58 +1797,75 @@ same session (`ISession`).
 A module establishes a namespace for looking up types, functions, etc.
 */
 IModule :: struct {
-    #as using icomponenttype: IComponentType;
-    #place icomponenttype; imodule_vtable: *IModule_VTable;
+    vtable: *IModule_VTable;
+    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
 }
 IModule_VTable :: struct #type_info_none {
-    using icomponenttype: IComponentType_VTable;
-    findEntryPointByName: (this: *IModule, name: *u8, outEntryPoint: **IEntryPoint) -> SlangResult #cpp_method;
-    getDefinedEntryPointCount: (this: *IModule) -> SlangInt32 #cpp_method;
-    getDefinedEntryPoint: (this: *IModule, index: SlangInt32, outEntryPoint: **IEntryPoint) -> SlangResult #cpp_method;
-    serialize: (this: *IModule, outSerializedBlob: **ISlangBlob) -> SlangResult #cpp_method;
-    writeToFile: (this: *IModule, fileName: *u8) -> SlangResult #cpp_method;
-    getName: (this: *IModule) -> *u8 #cpp_method;
-    getFilePath: (this: *IModule) -> *u8 #cpp_method;
-    getUniqueIdentity: (this: *IModule) -> *u8 #cpp_method;
-    findAndCheckEntryPoint: (this: *IModule, name: *u8, stage: SlangStage, outEntryPoint: **IEntryPoint, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
-    getDependencyFileCount: (this: *IModule) -> SlangInt32 #cpp_method;
-    getDependencyFilePath: (this: *IModule, index: SlangInt32) -> *u8 #cpp_method;
-    getModuleReflection: (this: *IModule) -> *DeclReflection #cpp_method;
+    using,except(vtable) vtable:                    IComponentType_VTable;
+    findEntryPointByName:      #type (this: *IModule, name: *u8, outEntryPoint: **IEntryPoint) -> SlangResult #cpp_method;
+    getDefinedEntryPointCount: #type (this: *IModule) -> SlangInt32 #cpp_method;
+    getDefinedEntryPoint:      #type (this: *IModule, index: SlangInt32, outEntryPoint: **IEntryPoint) -> SlangResult #cpp_method;
+    serialize:                 #type (this: *IModule, outSerializedBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    writeToFile:               #type (this: *IModule, fileName: *u8) -> SlangResult #cpp_method;
+    getName:                   #type (this: *IModule) -> *u8 #cpp_method;
+    getFilePath:               #type (this: *IModule) -> *u8 #cpp_method;
+    getUniqueIdentity:         #type (this: *IModule) -> *u8 #cpp_method;
+    findAndCheckEntryPoint:    #type (this: *IModule, name: *u8, stage: SlangStage, outEntryPoint: **IEntryPoint, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
+    getDependencyFileCount:    #type (this: *IModule) -> SlangInt32 #cpp_method;
+    getDependencyFilePath:     #type (this: *IModule, index: SlangInt32) -> *u8 #cpp_method;
+    getModuleReflection:       #type (this: *IModule) -> *DeclReflection #cpp_method;
+    disassemble:               #type (this: *IModule, outDisassembledBlob: **IBlob) -> SlangResult #cpp_method;
 }
-IModule_findEntryPointByName :: inline (this: *IModule, name: *u8, outEntryPoint: **IEntryPoint) -> SlangResult { return this.imodule_vtable.findEntryPointByName(this, name, outEntryPoint); }
-IModule_getDefinedEntryPointCount :: inline (this: *IModule) -> SlangInt32 { return this.imodule_vtable.getDefinedEntryPointCount(this); }
-IModule_getDefinedEntryPoint :: inline (this: *IModule, index: SlangInt32, outEntryPoint: **IEntryPoint) -> SlangResult { return this.imodule_vtable.getDefinedEntryPoint(this, index, outEntryPoint); }
-IModule_serialize :: inline (this: *IModule, outSerializedBlob: **ISlangBlob) -> SlangResult { return this.imodule_vtable.serialize(this, outSerializedBlob); }
-IModule_writeToFile :: inline (this: *IModule, fileName: *u8) -> SlangResult { return this.imodule_vtable.writeToFile(this, fileName); }
-IModule_getName :: inline (this: *IModule) -> *u8 { return this.imodule_vtable.getName(this); }
-IModule_getFilePath :: inline (this: *IModule) -> *u8 { return this.imodule_vtable.getFilePath(this); }
-IModule_getUniqueIdentity :: inline (this: *IModule) -> *u8 { return this.imodule_vtable.getUniqueIdentity(this); }
-IModule_findAndCheckEntryPoint :: inline (this: *IModule, name: *u8, stage: SlangStage, outEntryPoint: **IEntryPoint, outDiagnostics: **ISlangBlob) -> SlangResult { return this.imodule_vtable.findAndCheckEntryPoint(this, name, stage, outEntryPoint, outDiagnostics); }
-IModule_getDependencyFileCount :: inline (this: *IModule) -> SlangInt32 { return this.imodule_vtable.getDependencyFileCount(this); }
-IModule_getDependencyFilePath :: inline (this: *IModule, index: SlangInt32) -> *u8 { return this.imodule_vtable.getDependencyFilePath(this, index); }
-IModule_getModuleReflection :: inline (this: *IModule) -> *DeclReflection { return this.imodule_vtable.getModuleReflection(this); }
+IModule_findEntryPointByName :: inline (this: *IModule, name: *u8, outEntryPoint: **IEntryPoint) -> SlangResult { return this.vtable.findEntryPointByName(this, name, outEntryPoint); }
 
-vtable :: (obj: *IModule) -> *IModule_VTable { return obj.imodule_vtable; }
+IModule_getDefinedEntryPointCount :: inline (this: *IModule) -> SlangInt32 { return this.vtable.getDefinedEntryPointCount(this); }
+
+IModule_getDefinedEntryPoint :: inline (this: *IModule, index: SlangInt32, outEntryPoint: **IEntryPoint) -> SlangResult { return this.vtable.getDefinedEntryPoint(this, index, outEntryPoint); }
+
+IModule_serialize :: inline (this: *IModule, outSerializedBlob: **ISlangBlob) -> SlangResult { return this.vtable.serialize(this, outSerializedBlob); }
+
+IModule_writeToFile :: inline (this: *IModule, fileName: *u8) -> SlangResult { return this.vtable.writeToFile(this, fileName); }
+
+IModule_getName :: inline (this: *IModule) -> *u8 { return this.vtable.getName(this); }
+
+IModule_getFilePath :: inline (this: *IModule) -> *u8 { return this.vtable.getFilePath(this); }
+
+IModule_getUniqueIdentity :: inline (this: *IModule) -> *u8 { return this.vtable.getUniqueIdentity(this); }
+
+IModule_findAndCheckEntryPoint :: inline (this: *IModule, name: *u8, stage: SlangStage, outEntryPoint: **IEntryPoint, outDiagnostics: **ISlangBlob) -> SlangResult { return this.vtable.findAndCheckEntryPoint(this, name, stage, outEntryPoint, outDiagnostics); }
+
+IModule_getDependencyFileCount :: inline (this: *IModule) -> SlangInt32 { return this.vtable.getDependencyFileCount(this); }
+
+IModule_getDependencyFilePath :: inline (this: *IModule, index: SlangInt32) -> *u8 { return this.vtable.getDependencyFilePath(this, index); }
+
+IModule_getModuleReflection :: inline (this: *IModule) -> *DeclReflection { return this.vtable.getModuleReflection(this); }
+
+IModule_disassemble :: inline (this: *IModule, outDisassembledBlob: **IBlob) -> SlangResult { return this.vtable.disassemble(this, outDisassembledBlob); }
+
+vtable :: (obj: *IModule) -> *IModule_VTable { return obj.vtable; }
 
 
 /* Experimental interface for doing target precompilation of slang modules */
 IModulePrecompileService_Experimental :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; imoduleprecompileservice_experimental_vtable: *IModulePrecompileService_Experimental_VTable;
+    vtable: *IModulePrecompileService_Experimental_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 IModulePrecompileService_Experimental_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    precompileForTarget: (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
-    getPrecompiledTargetCode: (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
-    getModuleDependencyCount: (this: *IModulePrecompileService_Experimental) -> SlangInt #cpp_method;
-    getModuleDependency: (this: *IModulePrecompileService_Experimental, dependencyIndex: SlangInt, outModule: **IModule, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    using vtable:             ISlangUnknown_VTable;
+    precompileForTarget:      #type (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outDiagnostics: **ISlangBlob) -> SlangResult #cpp_method;
+    getPrecompiledTargetCode: #type (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getModuleDependencyCount: #type (this: *IModulePrecompileService_Experimental) -> SlangInt #cpp_method;
+    getModuleDependency:      #type (this: *IModulePrecompileService_Experimental, dependencyIndex: SlangInt, outModule: **IModule, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
 }
-IModulePrecompileService_Experimental_precompileForTarget :: inline (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outDiagnostics: **ISlangBlob) -> SlangResult { return this.imoduleprecompileservice_experimental_vtable.precompileForTarget(this, target, outDiagnostics); }
-IModulePrecompileService_Experimental_getPrecompiledTargetCode :: inline (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.imoduleprecompileservice_experimental_vtable.getPrecompiledTargetCode(this, target, outCode, outDiagnostics); }
-IModulePrecompileService_Experimental_getModuleDependencyCount :: inline (this: *IModulePrecompileService_Experimental) -> SlangInt { return this.imoduleprecompileservice_experimental_vtable.getModuleDependencyCount(this); }
-IModulePrecompileService_Experimental_getModuleDependency :: inline (this: *IModulePrecompileService_Experimental, dependencyIndex: SlangInt, outModule: **IModule, outDiagnostics: **IBlob = null) -> SlangResult { return this.imoduleprecompileservice_experimental_vtable.getModuleDependency(this, dependencyIndex, outModule, outDiagnostics); }
+IModulePrecompileService_Experimental_precompileForTarget :: inline (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outDiagnostics: **ISlangBlob) -> SlangResult { return this.vtable.precompileForTarget(this, target, outDiagnostics); }
 
-vtable :: (obj: *IModulePrecompileService_Experimental) -> *IModulePrecompileService_Experimental_VTable { return obj.imoduleprecompileservice_experimental_vtable; }
+IModulePrecompileService_Experimental_getPrecompiledTargetCode :: inline (this: *IModulePrecompileService_Experimental, target: SlangCompileTarget, outCode: **IBlob, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getPrecompiledTargetCode(this, target, outCode, outDiagnostics); }
+
+IModulePrecompileService_Experimental_getModuleDependencyCount :: inline (this: *IModulePrecompileService_Experimental) -> SlangInt { return this.vtable.getModuleDependencyCount(this); }
+
+IModulePrecompileService_Experimental_getModuleDependency :: inline (this: *IModulePrecompileService_Experimental, dependencyIndex: SlangInt, outModule: **IModule, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getModuleDependency(this, dependencyIndex, outModule, outDiagnostics); }
+
+vtable :: (obj: *IModulePrecompileService_Experimental) -> *IModulePrecompileService_Experimental_VTable { return obj.vtable; }
 
 
 /** Argument used for specialization to types/values.
@@ -1568,6 +1883,92 @@ SpecializationArg :: struct {
         type: *TypeReflection;
     }
 }
+
+OperandDataType :: enum s32 {
+    General :: 0;
+    Int32   :: 1;
+    Int64   :: 2;
+    Float32 :: 3;
+    Float64 :: 4;
+    String  :: 5;
+}
+
+VMExecOperand :: struct {
+    section:    **u8; // Pointer to the section start pointer.
+
+    __bitfield: u32;
+    /* 
+        type: u32; /* 8 bits */ // type of the operand data.
+        size: u32; /* 24 bits */;
+    */
+
+    offset:     u32;
+}
+
+VMExtFunction :: #type (_context: *IByteCodeRunner, inst: *VMExecInstHeader, userData: *void) -> void #c_call;
+VMPrintFunc :: #type (message: *u8, userData: *void) -> void #c_call;
+
+VMExecInstHeader :: struct {
+    functionPtr:     VMExtFunction; // Pointer to the function that executes this instruction.
+
+    opcodeExtension: u32;
+    operandCount:    u32;
+}
+
+ByteCodeFuncInfo :: struct {
+    parameterCount:  u32;
+    returnValueSize: u32;
+}
+
+ByteCodeRunnerDesc :: struct {
+    /** The size of this structure, in bytes.
+    */
+    structSize: u64 = 8;
+}
+
+/// Represents a byte code runner that can execute Slang byte code.
+IByteCodeRunner :: struct {
+    vtable: *IByteCodeRunner_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+}
+IByteCodeRunner_VTable :: struct #type_info_none {
+    using vtable:              ISlangUnknown_VTable;
+    loadModule:                #type (this: *IByteCodeRunner, moduleBlob: *IBlob) -> SlangResult #cpp_method;
+    selectFunctionByIndex:     #type (this: *IByteCodeRunner, functionIndex: u32) -> SlangResult #cpp_method;
+    findFunctionByName:        #type (this: *IByteCodeRunner, name: *u8) -> s32 #cpp_method;
+    getFunctionInfo:           #type (this: *IByteCodeRunner, index: u32, outInfo: *ByteCodeFuncInfo) -> SlangResult #cpp_method;
+    getCurrentWorkingSet:      #type (this: *IByteCodeRunner) -> *void #cpp_method;
+    execute:                   #type (this: *IByteCodeRunner, argumentData: *void, argumentSize: u64) -> SlangResult #cpp_method;
+    getErrorString:            #type (this: *IByteCodeRunner, outBlob: **IBlob) -> void #cpp_method;
+    getReturnValue:            #type (this: *IByteCodeRunner, outValueSize: *u64) -> *void #cpp_method;
+    setExtInstHandlerUserData: #type (this: *IByteCodeRunner, userData: *void) -> void #cpp_method;
+    registerExtCall:           #type (this: *IByteCodeRunner, name: *u8, functionPtr: VMExtFunction) -> SlangResult #cpp_method;
+    setPrintCallback:          #type (this: *IByteCodeRunner, callback: VMPrintFunc, userData: *void) -> SlangResult #cpp_method;
+}
+IByteCodeRunner_loadModule :: inline (this: *IByteCodeRunner, moduleBlob: *IBlob) -> SlangResult { return this.vtable.loadModule(this, moduleBlob); }
+
+IByteCodeRunner_selectFunctionByIndex :: inline (this: *IByteCodeRunner, functionIndex: u32) -> SlangResult { return this.vtable.selectFunctionByIndex(this, functionIndex); }
+
+IByteCodeRunner_findFunctionByName :: inline (this: *IByteCodeRunner, name: *u8) -> s32 { return this.vtable.findFunctionByName(this, name); }
+
+IByteCodeRunner_getFunctionInfo :: inline (this: *IByteCodeRunner, index: u32, outInfo: *ByteCodeFuncInfo) -> SlangResult { return this.vtable.getFunctionInfo(this, index, outInfo); }
+
+IByteCodeRunner_getCurrentWorkingSet :: inline (this: *IByteCodeRunner) -> *void { return this.vtable.getCurrentWorkingSet(this); }
+
+IByteCodeRunner_execute :: inline (this: *IByteCodeRunner, argumentData: *void, argumentSize: u64) -> SlangResult { return this.vtable.execute(this, argumentData, argumentSize); }
+
+IByteCodeRunner_getErrorString :: inline (this: *IByteCodeRunner, outBlob: **IBlob) { this.vtable.getErrorString(this, outBlob); }
+
+IByteCodeRunner_getReturnValue :: inline (this: *IByteCodeRunner, outValueSize: *u64) -> *void { return this.vtable.getReturnValue(this, outValueSize); }
+
+IByteCodeRunner_setExtInstHandlerUserData :: inline (this: *IByteCodeRunner, userData: *void) { this.vtable.setExtInstHandlerUserData(this, userData); }
+
+IByteCodeRunner_registerExtCall :: inline (this: *IByteCodeRunner, name: *u8, functionPtr: VMExtFunction) -> SlangResult { return this.vtable.registerExtCall(this, name, functionPtr); }
+
+IByteCodeRunner_setPrintCallback :: inline (this: *IByteCodeRunner, callback: VMPrintFunc, userData: *void) -> SlangResult { return this.vtable.setPrintCallback(this, callback, userData); }
+
+vtable :: (obj: *IByteCodeRunner) -> *IByteCodeRunner_VTable { return obj.vtable; }
+
 
 /** A result code for a Slang API operation.
 
@@ -1636,9 +2037,9 @@ ISlangUnknown :: struct {
     vtable: *ISlangUnknown_VTable;
 }
 ISlangUnknown_VTable :: struct #type_info_none {
-    queryInterface: (this: *ISlangUnknown, uuid: *SlangUUID, outObject: **void) -> SlangResult #cpp_method;
-    addRef: (this: *ISlangUnknown) -> u32 #cpp_method;
-    release: (this: *ISlangUnknown) -> u32 #cpp_method;
+    queryInterface: #type (this: *ISlangUnknown, uuid: *SlangUUID, outObject: **void) -> SlangResult #cpp_method;
+    addRef:         #type (this: *ISlangUnknown) -> u32 #cpp_method;
+    release:        #type (this: *ISlangUnknown) -> u32 #cpp_method;
 }
 ISlangUnknown_queryInterface :: inline (this: *ISlangUnknown, uuid: *SlangUUID, outObject: **void) -> SlangResult { return this.vtable.queryInterface(this, uuid, outObject); }
 ISlangUnknown_addRef :: inline (this: *ISlangUnknown) -> u32 { return this.vtable.addRef(this); }
@@ -1650,29 +2051,29 @@ vtable :: (obj: *ISlangUnknown) -> *ISlangUnknown_VTable { return obj.vtable; }
 /* An interface to provide a mechanism to cast, that doesn't require ref counting
 and doesn't have to return a pointer to a ISlangUnknown derived class */
 ISlangCastable :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangcastable_vtable: *ISlangCastable_VTable;
+    vtable: *ISlangCastable_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangCastable_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    castAs: (this: *ISlangCastable, guid: *SlangUUID) -> *void #cpp_method;
+    using vtable: ISlangUnknown_VTable;
+    castAs:       #type (this: *ISlangCastable, guid: *SlangUUID) -> *void #cpp_method;
 }
-ISlangCastable_castAs :: inline (this: *ISlangCastable, guid: *SlangUUID) -> *void { return this.islangcastable_vtable.castAs(this, guid); }
+ISlangCastable_castAs :: inline (this: *ISlangCastable, guid: *SlangUUID) -> *void { return this.vtable.castAs(this, guid); }
 
-vtable :: (obj: *ISlangCastable) -> *ISlangCastable_VTable { return obj.islangcastable_vtable; }
+vtable :: (obj: *ISlangCastable) -> *ISlangCastable_VTable { return obj.vtable; }
 
 
 ISlangClonable :: struct {
-    #as using islangcastable: ISlangCastable;
-    #place islangcastable; islangclonable_vtable: *ISlangClonable_VTable;
+    vtable: *ISlangClonable_VTable;
+    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
 }
 ISlangClonable_VTable :: struct #type_info_none {
-    using islangcastable: ISlangCastable_VTable;
-    clone: (this: *ISlangClonable, guid: *SlangUUID) -> *void #cpp_method;
+    using,except(vtable) vtable: ISlangCastable_VTable;
+    clone:  #type (this: *ISlangClonable, guid: *SlangUUID) -> *void #cpp_method;
 }
-ISlangClonable_clone :: inline (this: *ISlangClonable, guid: *SlangUUID) -> *void { return this.islangclonable_vtable.clone(this, guid); }
+ISlangClonable_clone :: inline (this: *ISlangClonable, guid: *SlangUUID) -> *void { return this.vtable.clone(this, guid); }
 
-vtable :: (obj: *ISlangClonable) -> *ISlangClonable_VTable { return obj.islangclonable_vtable; }
+vtable :: (obj: *ISlangClonable) -> *ISlangClonable_VTable { return obj.vtable; }
 
 
 /** A "blob" of binary data.
@@ -1680,18 +2081,18 @@ vtable :: (obj: *ISlangClonable) -> *ISlangClonable_VTable { return obj.islangcl
 This interface definition is compatible with the `ID3DBlob` and `ID3D10Blob` interfaces.
 */
 ISlangBlob :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangblob_vtable: *ISlangBlob_VTable;
+    vtable: *ISlangBlob_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangBlob_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    getBufferPointer: (this: *ISlangBlob) -> *void #cpp_method;
-    getBufferSize: (this: *ISlangBlob) -> u64 #cpp_method;
+    using vtable:     ISlangUnknown_VTable;
+    getBufferPointer: #type (this: *ISlangBlob) -> *void #cpp_method;
+    getBufferSize:    #type (this: *ISlangBlob) -> u64 #cpp_method;
 }
-ISlangBlob_getBufferPointer :: inline (this: *ISlangBlob) -> *void { return this.islangblob_vtable.getBufferPointer(this); }
-ISlangBlob_getBufferSize :: inline (this: *ISlangBlob) -> u64 { return this.islangblob_vtable.getBufferSize(this); }
+ISlangBlob_getBufferPointer :: inline (this: *ISlangBlob) -> *void { return this.vtable.getBufferPointer(this); }
+ISlangBlob_getBufferSize :: inline (this: *ISlangBlob) -> u64 { return this.vtable.getBufferSize(this); }
 
-vtable :: (obj: *ISlangBlob) -> *ISlangBlob_VTable { return obj.islangblob_vtable; }
+vtable :: (obj: *ISlangBlob) -> *ISlangBlob_VTable { return obj.vtable; }
 
 
 /* Can be requested from ISlangCastable cast to indicate the contained chars are null
@@ -1712,16 +2113,16 @@ the caller of any method that returns a ISlangBlob to release the blob when it i
 longer used (using 'release').
 */
 ISlangFileSystem :: struct {
-    #as using islangcastable: ISlangCastable;
-    #place islangcastable; islangfilesystem_vtable: *ISlangFileSystem_VTable;
+    vtable: *ISlangFileSystem_VTable;
+    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
 }
 ISlangFileSystem_VTable :: struct #type_info_none {
-    using islangcastable: ISlangCastable_VTable;
-    loadFile: (this: *ISlangFileSystem, path: *u8, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
+    using,except(vtable) vtable:   ISlangCastable_VTable;
+    loadFile: #type (this: *ISlangFileSystem, path: *u8, outBlob: **ISlangBlob) -> SlangResult #cpp_method;
 }
-ISlangFileSystem_loadFile :: inline (this: *ISlangFileSystem, path: *u8, outBlob: **ISlangBlob) -> SlangResult { return this.islangfilesystem_vtable.loadFile(this, path, outBlob); }
+ISlangFileSystem_loadFile :: inline (this: *ISlangFileSystem, path: *u8, outBlob: **ISlangBlob) -> SlangResult { return this.vtable.loadFile(this, path, outBlob); }
 
-vtable :: (obj: *ISlangFileSystem) -> *ISlangFileSystem_VTable { return obj.islangfilesystem_vtable; }
+vtable :: (obj: *ISlangFileSystem) -> *ISlangFileSystem_VTable { return obj.vtable; }
 
 
 SlangFuncPtr :: #type () -> void #c_call;
@@ -1730,45 +2131,45 @@ SlangFuncPtr :: #type () -> void #c_call;
 (DEPRECATED) ISlangSharedLibrary
 */
 ISlangSharedLibrary_Dep1 :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangsharedlibrary_dep1_vtable: *ISlangSharedLibrary_Dep1_VTable;
+    vtable: *ISlangSharedLibrary_Dep1_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangSharedLibrary_Dep1_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    findSymbolAddressByName: (this: *ISlangSharedLibrary_Dep1, name: *u8) -> *void #cpp_method;
+    using vtable:            ISlangUnknown_VTable;
+    findSymbolAddressByName: #type (this: *ISlangSharedLibrary_Dep1, name: *u8) -> *void #cpp_method;
 }
-ISlangSharedLibrary_Dep1_findSymbolAddressByName :: inline (this: *ISlangSharedLibrary_Dep1, name: *u8) -> *void { return this.islangsharedlibrary_dep1_vtable.findSymbolAddressByName(this, name); }
+ISlangSharedLibrary_Dep1_findSymbolAddressByName :: inline (this: *ISlangSharedLibrary_Dep1, name: *u8) -> *void { return this.vtable.findSymbolAddressByName(this, name); }
 
-vtable :: (obj: *ISlangSharedLibrary_Dep1) -> *ISlangSharedLibrary_Dep1_VTable { return obj.islangsharedlibrary_dep1_vtable; }
+vtable :: (obj: *ISlangSharedLibrary_Dep1) -> *ISlangSharedLibrary_Dep1_VTable { return obj.vtable; }
 
 
 /** An interface that can be used to encapsulate access to a shared library. An implementation
 does not have to implement the library as a shared library
 */
 ISlangSharedLibrary :: struct {
-    #as using islangcastable: ISlangCastable;
-    #place islangcastable; islangsharedlibrary_vtable: *ISlangSharedLibrary_VTable;
+    vtable: *ISlangSharedLibrary_VTable;
+    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
 }
 ISlangSharedLibrary_VTable :: struct #type_info_none {
-    using islangcastable: ISlangCastable_VTable;
-    findSymbolAddressByName: (this: *ISlangSharedLibrary, name: *u8) -> *void #cpp_method;
+    using,except(vtable) vtable:                  ISlangCastable_VTable;
+    findSymbolAddressByName: #type (this: *ISlangSharedLibrary, name: *u8) -> *void #cpp_method;
 }
-ISlangSharedLibrary_findSymbolAddressByName :: inline (this: *ISlangSharedLibrary, name: *u8) -> *void { return this.islangsharedlibrary_vtable.findSymbolAddressByName(this, name); }
+ISlangSharedLibrary_findSymbolAddressByName :: inline (this: *ISlangSharedLibrary, name: *u8) -> *void { return this.vtable.findSymbolAddressByName(this, name); }
 
-vtable :: (obj: *ISlangSharedLibrary) -> *ISlangSharedLibrary_VTable { return obj.islangsharedlibrary_vtable; }
+vtable :: (obj: *ISlangSharedLibrary) -> *ISlangSharedLibrary_VTable { return obj.vtable; }
 
 
 ISlangSharedLibraryLoader :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangsharedlibraryloader_vtable: *ISlangSharedLibraryLoader_VTable;
+    vtable: *ISlangSharedLibraryLoader_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangSharedLibraryLoader_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    loadSharedLibrary: (this: *ISlangSharedLibraryLoader, path: *u8, sharedLibraryOut: **ISlangSharedLibrary) -> SlangResult #cpp_method;
+    using vtable:      ISlangUnknown_VTable;
+    loadSharedLibrary: #type (this: *ISlangSharedLibraryLoader, path: *u8, sharedLibraryOut: **ISlangSharedLibrary) -> SlangResult #cpp_method;
 }
-ISlangSharedLibraryLoader_loadSharedLibrary :: inline (this: *ISlangSharedLibraryLoader, path: *u8, sharedLibraryOut: **ISlangSharedLibrary) -> SlangResult { return this.islangsharedlibraryloader_vtable.loadSharedLibrary(this, path, sharedLibraryOut); }
+ISlangSharedLibraryLoader_loadSharedLibrary :: inline (this: *ISlangSharedLibraryLoader, path: *u8, sharedLibraryOut: **ISlangSharedLibrary) -> SlangResult { return this.vtable.loadSharedLibrary(this, path, sharedLibraryOut); }
 
-vtable :: (obj: *ISlangSharedLibraryLoader) -> *ISlangSharedLibraryLoader_VTable { return obj.islangsharedlibraryloader_vtable; }
+vtable :: (obj: *ISlangSharedLibraryLoader) -> *ISlangSharedLibraryLoader_VTable { return obj.vtable; }
 
 
 /* Type that identifies how a path should be interpreted */
@@ -1815,47 +2216,56 @@ All paths as input char*, or output as ISlangBlobs are always encoded as UTF-8 s
 Blobs that contain strings are always zero terminated.
 */
 ISlangFileSystemExt :: struct {
-    #as using islangfilesystem: ISlangFileSystem;
-    #place islangfilesystem; islangfilesystemext_vtable: *ISlangFileSystemExt_VTable;
+    vtable: *ISlangFileSystemExt_VTable;
+    #place vtable; #as islangfilesystem: ISlangFileSystem; // Support cast to ISlangFileSystem
 }
 ISlangFileSystemExt_VTable :: struct #type_info_none {
-    using islangfilesystem: ISlangFileSystem_VTable;
-    getFileUniqueIdentity: (this: *ISlangFileSystemExt, path: *u8, outUniqueIdentity: **ISlangBlob) -> SlangResult #cpp_method;
-    calcCombinedPath: (this: *ISlangFileSystemExt, fromPathType: SlangPathType, fromPath: *u8, path: *u8, pathOut: **ISlangBlob) -> SlangResult #cpp_method;
-    getPathType: (this: *ISlangFileSystemExt, path: *u8, pathTypeOut: *SlangPathType) -> SlangResult #cpp_method;
-    getPath: (this: *ISlangFileSystemExt, kind: PathKind, path: *u8, outPath: **ISlangBlob) -> SlangResult #cpp_method;
-    clearCache: (this: *ISlangFileSystemExt) -> void #cpp_method;
-    enumeratePathContents: (this: *ISlangFileSystemExt, path: *u8, callback: FileSystemContentsCallBack, userData: *void) -> SlangResult #cpp_method;
-    getOSPathKind: (this: *ISlangFileSystemExt) -> OSPathKind #cpp_method;
+    using,except(vtable) vtable:                ISlangFileSystem_VTable;
+    getFileUniqueIdentity: #type (this: *ISlangFileSystemExt, path: *u8, outUniqueIdentity: **ISlangBlob) -> SlangResult #cpp_method;
+    calcCombinedPath:      #type (this: *ISlangFileSystemExt, fromPathType: SlangPathType, fromPath: *u8, path: *u8, pathOut: **ISlangBlob) -> SlangResult #cpp_method;
+    getPathType:           #type (this: *ISlangFileSystemExt, path: *u8, pathTypeOut: *SlangPathType) -> SlangResult #cpp_method;
+    getPath:               #type (this: *ISlangFileSystemExt, kind: PathKind, path: *u8, outPath: **ISlangBlob) -> SlangResult #cpp_method;
+    clearCache:            #type (this: *ISlangFileSystemExt) -> void #cpp_method;
+    enumeratePathContents: #type (this: *ISlangFileSystemExt, path: *u8, callback: FileSystemContentsCallBack, userData: *void) -> SlangResult #cpp_method;
+    getOSPathKind:         #type (this: *ISlangFileSystemExt) -> OSPathKind #cpp_method;
 }
-ISlangFileSystemExt_getFileUniqueIdentity :: inline (this: *ISlangFileSystemExt, path: *u8, outUniqueIdentity: **ISlangBlob) -> SlangResult { return this.islangfilesystemext_vtable.getFileUniqueIdentity(this, path, outUniqueIdentity); }
-ISlangFileSystemExt_calcCombinedPath :: inline (this: *ISlangFileSystemExt, fromPathType: SlangPathType, fromPath: *u8, path: *u8, pathOut: **ISlangBlob) -> SlangResult { return this.islangfilesystemext_vtable.calcCombinedPath(this, fromPathType, fromPath, path, pathOut); }
-ISlangFileSystemExt_getPathType :: inline (this: *ISlangFileSystemExt, path: *u8, pathTypeOut: *SlangPathType) -> SlangResult { return this.islangfilesystemext_vtable.getPathType(this, path, pathTypeOut); }
-ISlangFileSystemExt_getPath :: inline (this: *ISlangFileSystemExt, kind: PathKind, path: *u8, outPath: **ISlangBlob) -> SlangResult { return this.islangfilesystemext_vtable.getPath(this, kind, path, outPath); }
-ISlangFileSystemExt_clearCache :: inline (this: *ISlangFileSystemExt) { this.islangfilesystemext_vtable.clearCache(this); }
-ISlangFileSystemExt_enumeratePathContents :: inline (this: *ISlangFileSystemExt, path: *u8, callback: FileSystemContentsCallBack, userData: *void) -> SlangResult { return this.islangfilesystemext_vtable.enumeratePathContents(this, path, callback, userData); }
-ISlangFileSystemExt_getOSPathKind :: inline (this: *ISlangFileSystemExt) -> OSPathKind { return this.islangfilesystemext_vtable.getOSPathKind(this); }
+ISlangFileSystemExt_getFileUniqueIdentity :: inline (this: *ISlangFileSystemExt, path: *u8, outUniqueIdentity: **ISlangBlob) -> SlangResult { return this.vtable.getFileUniqueIdentity(this, path, outUniqueIdentity); }
 
-vtable :: (obj: *ISlangFileSystemExt) -> *ISlangFileSystemExt_VTable { return obj.islangfilesystemext_vtable; }
+ISlangFileSystemExt_calcCombinedPath :: inline (this: *ISlangFileSystemExt, fromPathType: SlangPathType, fromPath: *u8, path: *u8, pathOut: **ISlangBlob) -> SlangResult { return this.vtable.calcCombinedPath(this, fromPathType, fromPath, path, pathOut); }
+
+ISlangFileSystemExt_getPathType :: inline (this: *ISlangFileSystemExt, path: *u8, pathTypeOut: *SlangPathType) -> SlangResult { return this.vtable.getPathType(this, path, pathTypeOut); }
+
+ISlangFileSystemExt_getPath :: inline (this: *ISlangFileSystemExt, kind: PathKind, path: *u8, outPath: **ISlangBlob) -> SlangResult { return this.vtable.getPath(this, kind, path, outPath); }
+
+ISlangFileSystemExt_clearCache :: inline (this: *ISlangFileSystemExt) { this.vtable.clearCache(this); }
+
+ISlangFileSystemExt_enumeratePathContents :: inline (this: *ISlangFileSystemExt, path: *u8, callback: FileSystemContentsCallBack, userData: *void) -> SlangResult { return this.vtable.enumeratePathContents(this, path, callback, userData); }
+
+ISlangFileSystemExt_getOSPathKind :: inline (this: *ISlangFileSystemExt) -> OSPathKind { return this.vtable.getOSPathKind(this); }
+
+vtable :: (obj: *ISlangFileSystemExt) -> *ISlangFileSystemExt_VTable { return obj.vtable; }
 
 
 ISlangMutableFileSystem :: struct {
-    #as using islangfilesystemext: ISlangFileSystemExt;
-    #place islangfilesystemext; islangmutablefilesystem_vtable: *ISlangMutableFileSystem_VTable;
+    vtable: *ISlangMutableFileSystem_VTable;
+    #place vtable; #as islangfilesystemext: ISlangFileSystemExt; // Support cast to ISlangFileSystemExt
 }
 ISlangMutableFileSystem_VTable :: struct #type_info_none {
-    using islangfilesystemext: ISlangFileSystemExt_VTable;
-    saveFile: (this: *ISlangMutableFileSystem, path: *u8, data: *void, size: u64) -> SlangResult #cpp_method;
-    saveFileBlob: (this: *ISlangMutableFileSystem, path: *u8, dataBlob: *ISlangBlob) -> SlangResult #cpp_method;
-    _remove: (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult #cpp_method;
-    createDirectory: (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult #cpp_method;
+    using,except(vtable) vtable:          ISlangFileSystemExt_VTable;
+    saveFile:        #type (this: *ISlangMutableFileSystem, path: *u8, data: *void, size: u64) -> SlangResult #cpp_method;
+    saveFileBlob:    #type (this: *ISlangMutableFileSystem, path: *u8, dataBlob: *ISlangBlob) -> SlangResult #cpp_method;
+    _remove:         #type (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult #cpp_method;
+    createDirectory: #type (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult #cpp_method;
 }
-ISlangMutableFileSystem_saveFile :: inline (this: *ISlangMutableFileSystem, path: *u8, data: *void, size: u64) -> SlangResult { return this.islangmutablefilesystem_vtable.saveFile(this, path, data, size); }
-ISlangMutableFileSystem_saveFileBlob :: inline (this: *ISlangMutableFileSystem, path: *u8, dataBlob: *ISlangBlob) -> SlangResult { return this.islangmutablefilesystem_vtable.saveFileBlob(this, path, dataBlob); }
-ISlangMutableFileSystem__remove :: inline (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult { return this.islangmutablefilesystem_vtable._remove(this, path); }
-ISlangMutableFileSystem_createDirectory :: inline (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult { return this.islangmutablefilesystem_vtable.createDirectory(this, path); }
+ISlangMutableFileSystem_saveFile :: inline (this: *ISlangMutableFileSystem, path: *u8, data: *void, size: u64) -> SlangResult { return this.vtable.saveFile(this, path, data, size); }
 
-vtable :: (obj: *ISlangMutableFileSystem) -> *ISlangMutableFileSystem_VTable { return obj.islangmutablefilesystem_vtable; }
+ISlangMutableFileSystem_saveFileBlob :: inline (this: *ISlangMutableFileSystem, path: *u8, dataBlob: *ISlangBlob) -> SlangResult { return this.vtable.saveFileBlob(this, path, dataBlob); }
+
+ISlangMutableFileSystem__remove :: inline (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult { return this.vtable._remove(this, path); }
+
+ISlangMutableFileSystem_createDirectory :: inline (this: *ISlangMutableFileSystem, path: *u8) -> SlangResult { return this.vtable.createDirectory(this, path); }
+
+vtable :: (obj: *ISlangMutableFileSystem) -> *ISlangMutableFileSystem_VTable { return obj.vtable; }
 
 
 /* Identifies different types of writer target*/
@@ -1884,45 +2294,50 @@ SlangWriterMode :: enum SlangWriterModeIntegral {
 /** A stream typically of text, used for outputting diagnostic as well as other information.
 */
 ISlangWriter :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangwriter_vtable: *ISlangWriter_VTable;
+    vtable: *ISlangWriter_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangWriter_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    beginAppendBuffer: (this: *ISlangWriter, maxNumChars: u64) -> *u8 #cpp_method;
-    endAppendBuffer: (this: *ISlangWriter, buffer: *u8, numChars: u64) -> SlangResult #cpp_method;
-    write: (this: *ISlangWriter, chars: *u8, numChars: u64) -> SlangResult #cpp_method;
-    flush: (this: *ISlangWriter) -> void #cpp_method;
-    isConsole: (this: *ISlangWriter) -> SlangBool #cpp_method;
-    setMode: (this: *ISlangWriter, mode: SlangWriterMode) -> SlangResult #cpp_method;
+    using vtable:      ISlangUnknown_VTable;
+    beginAppendBuffer: #type (this: *ISlangWriter, maxNumChars: u64) -> *u8 #cpp_method;
+    endAppendBuffer:   #type (this: *ISlangWriter, buffer: *u8, numChars: u64) -> SlangResult #cpp_method;
+    write:             #type (this: *ISlangWriter, chars: *u8, numChars: u64) -> SlangResult #cpp_method;
+    flush:             #type (this: *ISlangWriter) -> void #cpp_method;
+    isConsole:         #type (this: *ISlangWriter) -> SlangBool #cpp_method;
+    setMode:           #type (this: *ISlangWriter, mode: SlangWriterMode) -> SlangResult #cpp_method;
 }
-ISlangWriter_beginAppendBuffer :: inline (this: *ISlangWriter, maxNumChars: u64) -> *u8 { return this.islangwriter_vtable.beginAppendBuffer(this, maxNumChars); }
-ISlangWriter_endAppendBuffer :: inline (this: *ISlangWriter, buffer: *u8, numChars: u64) -> SlangResult { return this.islangwriter_vtable.endAppendBuffer(this, buffer, numChars); }
-ISlangWriter_write :: inline (this: *ISlangWriter, chars: *u8, numChars: u64) -> SlangResult { return this.islangwriter_vtable.write(this, chars, numChars); }
-ISlangWriter_flush :: inline (this: *ISlangWriter) { this.islangwriter_vtable.flush(this); }
-ISlangWriter_isConsole :: inline (this: *ISlangWriter) -> SlangBool { return this.islangwriter_vtable.isConsole(this); }
-ISlangWriter_setMode :: inline (this: *ISlangWriter, mode: SlangWriterMode) -> SlangResult { return this.islangwriter_vtable.setMode(this, mode); }
+ISlangWriter_beginAppendBuffer :: inline (this: *ISlangWriter, maxNumChars: u64) -> *u8 { return this.vtable.beginAppendBuffer(this, maxNumChars); }
 
-vtable :: (obj: *ISlangWriter) -> *ISlangWriter_VTable { return obj.islangwriter_vtable; }
+ISlangWriter_endAppendBuffer :: inline (this: *ISlangWriter, buffer: *u8, numChars: u64) -> SlangResult { return this.vtable.endAppendBuffer(this, buffer, numChars); }
+
+ISlangWriter_write :: inline (this: *ISlangWriter, chars: *u8, numChars: u64) -> SlangResult { return this.vtable.write(this, chars, numChars); }
+
+ISlangWriter_flush :: inline (this: *ISlangWriter) { this.vtable.flush(this); }
+
+ISlangWriter_isConsole :: inline (this: *ISlangWriter) -> SlangBool { return this.vtable.isConsole(this); }
+
+ISlangWriter_setMode :: inline (this: *ISlangWriter, mode: SlangWriterMode) -> SlangResult { return this.vtable.setMode(this, mode); }
+
+vtable :: (obj: *ISlangWriter) -> *ISlangWriter_VTable { return obj.vtable; }
 
 
 ISlangProfiler :: struct {
-    #as using islangunknown: ISlangUnknown;
-    #place islangunknown; islangprofiler_vtable: *ISlangProfiler_VTable;
+    vtable: *ISlangProfiler_VTable;
+    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
 }
 ISlangProfiler_VTable :: struct #type_info_none {
-    using islangunknown: ISlangUnknown_VTable;
-    getEntryCount: (this: *ISlangProfiler) -> u64 #cpp_method;
-    getEntryName: (this: *ISlangProfiler, index: u32) -> *u8 #cpp_method;
-    getEntryTimeMS: (this: *ISlangProfiler, index: u32) -> s32 #cpp_method;
-    getEntryInvocationTimes: (this: *ISlangProfiler, index: u32) -> u32 #cpp_method;
+    using vtable:            ISlangUnknown_VTable;
+    getEntryCount:           #type (this: *ISlangProfiler) -> u64 #cpp_method;
+    getEntryName:            #type (this: *ISlangProfiler, index: u32) -> *u8 #cpp_method;
+    getEntryTimeMS:          #type (this: *ISlangProfiler, index: u32) -> s32 #cpp_method;
+    getEntryInvocationTimes: #type (this: *ISlangProfiler, index: u32) -> u32 #cpp_method;
 }
-ISlangProfiler_getEntryCount :: inline (this: *ISlangProfiler) -> u64 { return this.islangprofiler_vtable.getEntryCount(this); }
-ISlangProfiler_getEntryName :: inline (this: *ISlangProfiler, index: u32) -> *u8 { return this.islangprofiler_vtable.getEntryName(this, index); }
-ISlangProfiler_getEntryTimeMS :: inline (this: *ISlangProfiler, index: u32) -> s32 { return this.islangprofiler_vtable.getEntryTimeMS(this, index); }
-ISlangProfiler_getEntryInvocationTimes :: inline (this: *ISlangProfiler, index: u32) -> u32 { return this.islangprofiler_vtable.getEntryInvocationTimes(this, index); }
+ISlangProfiler_getEntryCount :: inline (this: *ISlangProfiler) -> u64 { return this.vtable.getEntryCount(this); }
+ISlangProfiler_getEntryName :: inline (this: *ISlangProfiler, index: u32) -> *u8 { return this.vtable.getEntryName(this, index); }
+ISlangProfiler_getEntryTimeMS :: inline (this: *ISlangProfiler, index: u32) -> s32 { return this.vtable.getEntryTimeMS(this, index); }
+ISlangProfiler_getEntryInvocationTimes :: inline (this: *ISlangProfiler, index: u32) -> u32 { return this.vtable.getEntryInvocationTimes(this, index); }
 
-vtable :: (obj: *ISlangProfiler) -> *ISlangProfiler_VTable { return obj.islangprofiler_vtable; }
+vtable :: (obj: *ISlangProfiler) -> *ISlangProfiler_VTable { return obj.vtable; }
 
 
 /*!
@@ -2120,12 +2535,13 @@ SlangResourceShape :: enum SlangResourceShapeIntegral {
     ACCELERATION_STRUCTURE       :: 9;
     TEXTURE_SUBPASS              :: 10;
 
-    RESOURCE_EXT_SHAPE_MASK      :: 240;
+    RESOURCE_EXT_SHAPE_MASK      :: 496;
 
     TEXTURE_FEEDBACK_FLAG        :: 16;
     TEXTURE_SHADOW_FLAG          :: 32;
     TEXTURE_ARRAY_FLAG           :: 64;
     TEXTURE_MULTISAMPLE_FLAG     :: 128;
+    TEXTURE_COMBINED_FLAG        :: 256;
 
     TEXTURE_1D_ARRAY             :: 65;
     TEXTURE_2D_ARRAY             :: 66;
@@ -2158,6 +2574,7 @@ SlangResourceShape :: enum SlangResourceShapeIntegral {
     SLANG_TEXTURE_SHADOW_FLAG          :: TEXTURE_SHADOW_FLAG;
     SLANG_TEXTURE_ARRAY_FLAG           :: TEXTURE_ARRAY_FLAG;
     SLANG_TEXTURE_MULTISAMPLE_FLAG     :: TEXTURE_MULTISAMPLE_FLAG;
+    SLANG_TEXTURE_COMBINED_FLAG        :: TEXTURE_COMBINED_FLAG;
 
     SLANG_TEXTURE_1D_ARRAY             :: TEXTURE_1D_ARRAY;
     SLANG_TEXTURE_2D_ARRAY             :: TEXTURE_2D_ARRAY;
@@ -2453,6 +2870,7 @@ SlangImageFormat :: enum SlangImageFormatIntegral {
     r8ui           :: 39;
     r64ui          :: 40;
     r64i           :: 41;
+    bgra8          :: 42;
 
     SLANG_IMAGE_FORMAT_unknown        :: unknown;
     SLANG_IMAGE_FORMAT_rgba32f        :: rgba32f;
@@ -2496,6 +2914,7 @@ SlangImageFormat :: enum SlangImageFormatIntegral {
     SLANG_IMAGE_FORMAT_r8ui           :: r8ui;
     SLANG_IMAGE_FORMAT_r64ui          :: r64ui;
     SLANG_IMAGE_FORMAT_r64i           :: r64i;
+    SLANG_IMAGE_FORMAT_bgra8          :: bgra8;
 }
 
 // Shader Parameter Reflection
@@ -2806,8 +3225,16 @@ which is defined to be `~size_t(0)`.
 
 If the size of a type cannot be statically computed, perhaps because it depends on
 a generic parameter that has not been bound to a specific value, this function returns zero.
+
+Use spReflectionType_GetSpecializedElementCount if the size is dependent on
+a link time constant
 */
 spReflectionType_GetElementCount :: (type: *SlangReflectionType) -> u64 #foreign slang;
+
+/** The same as spReflectionType_GetElementCount except it takes into account specialization
+* information from the given reflection info
+*/
+spReflectionType_GetSpecializedElementCount :: (type: *SlangReflectionType, reflection: *SlangReflection) -> u64 #foreign slang;
 
 spReflectionType_GetElementType :: (type: *SlangReflectionType) -> *SlangReflectionType #foreign slang;
 
@@ -2918,6 +3345,8 @@ spReflectionVariable_GetUserAttribute :: (var: *SlangReflectionVariable, index: 
 spReflectionVariable_FindUserAttributeByName :: (var: *SlangReflectionVariable, globalSession: *SlangSession, name: *u8) -> *SlangReflectionUserAttribute #foreign slang;
 
 spReflectionVariable_HasDefaultValue :: (inVar: *SlangReflectionVariable) -> bool #foreign slang;
+
+spReflectionVariable_GetDefaultValueInt :: (inVar: *SlangReflectionVariable, rs: *s64) -> SlangResult #foreign slang;
 spReflectionVariable_GetGenericContainer :: (var: *SlangReflectionVariable) -> *SlangReflectionGeneric #foreign slang;
 
 spReflectionVariable_applySpecializations :: (var: *SlangReflectionVariable, generic: *SlangReflectionGeneric) -> *SlangReflectionVariable #foreign slang;
@@ -2930,6 +3359,8 @@ spReflectionVariableLayout_GetTypeLayout :: (var: *SlangReflectionVariableLayout
 spReflectionVariableLayout_GetOffset :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang;
 
 spReflectionVariableLayout_GetSpace :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang;
+
+spReflectionVariableLayout_GetImageFormat :: (var: *SlangReflectionVariableLayout) -> SlangImageFormat #foreign slang;
 
 spReflectionVariableLayout_GetSemanticName :: (var: *SlangReflectionVariableLayout) -> *u8 #foreign slang;
 
@@ -3125,12 +3556,54 @@ spCompileRequest_getModule :: (request: *SlangCompileRequest, translationUnitInd
 */
 spCompileRequest_getSession :: (request: *SlangCompileRequest, outSession: **ISession) -> SlangResult #foreign slang;
 
+SlangLanguageVersion :: enum s32 {
+    LANGUAGE_VERSION_UNKNOWN :: 0;
+    LANGUAGE_VERSION_LEGACY  :: 2018;
+    LANGUAGE_VERSION_2025    :: 2025;
+    LANGUAGE_VERSION_2026    :: 2026;
+    LANGAUGE_VERSION_DEFAULT :: 2018;
+    LANGUAGE_VERSION_LATEST  :: 2026;
+
+    SLANG_LANGUAGE_VERSION_UNKNOWN :: LANGUAGE_VERSION_UNKNOWN;
+    SLANG_LANGUAGE_VERSION_LEGACY  :: LANGUAGE_VERSION_LEGACY;
+    SLANG_LANGUAGE_VERSION_2025    :: LANGUAGE_VERSION_2025;
+    SLANG_LANGUAGE_VERSION_2026    :: LANGUAGE_VERSION_2026;
+    SLANG_LANGAUGE_VERSION_DEFAULT :: LANGAUGE_VERSION_DEFAULT;
+    SLANG_LANGUAGE_VERSION_LATEST  :: LANGUAGE_VERSION_LATEST;
+}
+
+/* Description of a Slang global session.
+*/
+SlangGlobalSessionDesc :: struct {
+    /// Size of this struct.
+    structureSize:      u32 = 80;
+
+    /// Slang API version.
+    apiVersion:         u32 = 0;
+
+    /// Specify the oldest Slang language version that any sessions will use.
+    minLanguageVersion: u32 = xx SlangLanguageVersion.LANGUAGE_VERSION_2025;
+
+    /// Whether to enable GLSL support.
+    enableGLSL          := false;
+
+    /// Reserved for future use.
+    reserved:           [16] u32;
+}
+
 /* Create a global session, with the built-in core module.
 
 @param apiVersion Pass in SLANG_API_VERSION
 @param outGlobalSession (out)The created global session.
 */
 slang_createGlobalSession :: (apiVersion: SlangInt, outGlobalSession: **IGlobalSession) -> SlangResult #foreign slang;
+
+/* Create a global session, with the built-in core module.
+
+@param desc Description of the global session.
+@param outGlobalSession (out)The created global session.
+*/
+slang_createGlobalSession2 :: (desc: *SlangGlobalSessionDesc, outGlobalSession: **IGlobalSession) -> SlangResult #foreign slang;
 
 /* Create a global session, but do not set up the core module. The core module can
 then be loaded via loadCoreModule or compileCoreModule
@@ -3160,6 +3633,12 @@ slang_shutdown :: () -> void #foreign slang;
 */
 slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
 
+/// Create a byte code runner that can execute Slang byte code.
+slang_createByteCodeRunner :: (desc: *ByteCodeRunnerDesc, outByteCodeRunner: **IByteCodeRunner) -> SlangResult #foreign slang;
+
+/// Disassemble a Slang byte code blob into human-readable text.
+slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -> SlangResult #foreign slang;
+
 #scope_file
 
 #import "Basic"; // For assert
@@ -3167,39 +3646,61 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
 
 #run {
     {
-        instance: CompilerOptionValue;
-        assert(((cast(*void)(*instance.kind)) - cast(*void)(*instance)) == 0, "CompilerOptionValue.kind has unexpected offset % instead of 0", ((cast(*void)(*instance.kind)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionValue.kind)) == 4, "CompilerOptionValue.kind has unexpected size % instead of 4", size_of(type_of(CompilerOptionValue.kind)));
-        assert(((cast(*void)(*instance.intValue0)) - cast(*void)(*instance)) == 4, "CompilerOptionValue.intValue0 has unexpected offset % instead of 4", ((cast(*void)(*instance.intValue0)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionValue.intValue0)) == 4, "CompilerOptionValue.intValue0 has unexpected size % instead of 4", size_of(type_of(CompilerOptionValue.intValue0)));
-        assert(((cast(*void)(*instance.intValue1)) - cast(*void)(*instance)) == 8, "CompilerOptionValue.intValue1 has unexpected offset % instead of 8", ((cast(*void)(*instance.intValue1)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionValue.intValue1)) == 4, "CompilerOptionValue.intValue1 has unexpected size % instead of 4", size_of(type_of(CompilerOptionValue.intValue1)));
-        assert(((cast(*void)(*instance.stringValue0)) - cast(*void)(*instance)) == 16, "CompilerOptionValue.stringValue0 has unexpected offset % instead of 16", ((cast(*void)(*instance.stringValue0)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionValue.stringValue0)) == 8, "CompilerOptionValue.stringValue0 has unexpected size % instead of 8", size_of(type_of(CompilerOptionValue.stringValue0)));
-        assert(((cast(*void)(*instance.stringValue1)) - cast(*void)(*instance)) == 24, "CompilerOptionValue.stringValue1 has unexpected offset % instead of 24", ((cast(*void)(*instance.stringValue1)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionValue.stringValue1)) == 8, "CompilerOptionValue.stringValue1 has unexpected size % instead of 8", size_of(type_of(CompilerOptionValue.stringValue1)));
+        info := type_info(CompilerOptionValue);
+        for info.members {
+            if it.name == {
+                case "kind";
+                    assert(it.offset_in_bytes == 0, "CompilerOptionValue.kind has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "CompilerOptionValue.kind has unexpected size % instead of 4", it.type.runtime_size);
+                case "intValue0";
+                    assert(it.offset_in_bytes == 4, "CompilerOptionValue.intValue0 has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "CompilerOptionValue.intValue0 has unexpected size % instead of 4", it.type.runtime_size);
+                case "intValue1";
+                    assert(it.offset_in_bytes == 8, "CompilerOptionValue.intValue1 has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "CompilerOptionValue.intValue1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "stringValue0";
+                    assert(it.offset_in_bytes == 16, "CompilerOptionValue.stringValue0 has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "CompilerOptionValue.stringValue0 has unexpected size % instead of 8", it.type.runtime_size);
+                case "stringValue1";
+                    assert(it.offset_in_bytes == 24, "CompilerOptionValue.stringValue1 has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "CompilerOptionValue.stringValue1 has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
         assert(size_of(CompilerOptionValue) == 32, "CompilerOptionValue has size % instead of 32", size_of(CompilerOptionValue));
     }
 
     {
-        instance: CompilerOptionEntry;
-        assert(((cast(*void)(*instance.name)) - cast(*void)(*instance)) == 0, "CompilerOptionEntry.name has unexpected offset % instead of 0", ((cast(*void)(*instance.name)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionEntry.name)) == 4, "CompilerOptionEntry.name has unexpected size % instead of 4", size_of(type_of(CompilerOptionEntry.name)));
-        assert(((cast(*void)(*instance.value)) - cast(*void)(*instance)) == 8, "CompilerOptionEntry.value has unexpected offset % instead of 8", ((cast(*void)(*instance.value)) - cast(*void)(*instance)));
-        assert(size_of(type_of(CompilerOptionEntry.value)) == 32, "CompilerOptionEntry.value has unexpected size % instead of 32", size_of(type_of(CompilerOptionEntry.value)));
+        info := type_info(CompilerOptionEntry);
+        for info.members {
+            if it.name == {
+                case "name";
+                    assert(it.offset_in_bytes == 0, "CompilerOptionEntry.name has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "CompilerOptionEntry.name has unexpected size % instead of 4", it.type.runtime_size);
+                case "value";
+                    assert(it.offset_in_bytes == 8, "CompilerOptionEntry.value has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 32, "CompilerOptionEntry.value has unexpected size % instead of 32", it.type.runtime_size);
+            }
+        }
         assert(size_of(CompilerOptionEntry) == 40, "CompilerOptionEntry has size % instead of 40", size_of(CompilerOptionEntry));
     }
 
     assert(size_of(ICompileRequest) == 8, "ICompileRequest has size % instead of 8", size_of(ICompileRequest));
 
     {
-        instance: GenericArgReflection;
-        assert(((cast(*void)(*instance.typeVal)) - cast(*void)(*instance)) == 0, "GenericArgReflection.typeVal has unexpected offset % instead of 0", ((cast(*void)(*instance.typeVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(GenericArgReflection.typeVal)) == 8, "GenericArgReflection.typeVal has unexpected size % instead of 8", size_of(type_of(GenericArgReflection.typeVal)));
-        assert(((cast(*void)(*instance.intVal)) - cast(*void)(*instance)) == 0, "GenericArgReflection.intVal has unexpected offset % instead of 0", ((cast(*void)(*instance.intVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(GenericArgReflection.intVal)) == 8, "GenericArgReflection.intVal has unexpected size % instead of 8", size_of(type_of(GenericArgReflection.intVal)));
-        assert(((cast(*void)(*instance.boolVal)) - cast(*void)(*instance)) == 0, "GenericArgReflection.boolVal has unexpected offset % instead of 0", ((cast(*void)(*instance.boolVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(GenericArgReflection.boolVal)) == 1, "GenericArgReflection.boolVal has unexpected size % instead of 1", size_of(type_of(GenericArgReflection.boolVal)));
+        info := type_info(GenericArgReflection);
+        for info.members {
+            if it.name == {
+                case "typeVal";
+                    assert(it.offset_in_bytes == 0, "GenericArgReflection.typeVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "GenericArgReflection.typeVal has unexpected size % instead of 8", it.type.runtime_size);
+                case "intVal";
+                    assert(it.offset_in_bytes == 0, "GenericArgReflection.intVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "GenericArgReflection.intVal has unexpected size % instead of 8", it.type.runtime_size);
+                case "boolVal";
+                    assert(it.offset_in_bytes == 0, "GenericArgReflection.boolVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "GenericArgReflection.boolVal has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
         assert(size_of(GenericArgReflection) == 8, "GenericArgReflection has size % instead of 8", size_of(GenericArgReflection));
     }
 
@@ -3226,22 +3727,35 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
     assert(size_of(ShaderReflection) == 1, "ShaderReflection has size % instead of 1", size_of(ShaderReflection));
 
     {
-        instance: DeclReflection.IteratedList.Iterator;
-        assert(((cast(*void)(*instance.parent)) - cast(*void)(*instance)) == 0, "DeclReflection.IteratedList.Iterator.parent has unexpected offset % instead of 0", ((cast(*void)(*instance.parent)) - cast(*void)(*instance)));
-        assert(size_of(type_of(DeclReflection.IteratedList.Iterator.parent)) == 8, "DeclReflection.IteratedList.Iterator.parent has unexpected size % instead of 8", size_of(type_of(DeclReflection.IteratedList.Iterator.parent)));
-        assert(((cast(*void)(*instance.count)) - cast(*void)(*instance)) == 8, "DeclReflection.IteratedList.Iterator.count has unexpected offset % instead of 8", ((cast(*void)(*instance.count)) - cast(*void)(*instance)));
-        assert(size_of(type_of(DeclReflection.IteratedList.Iterator.count)) == 4, "DeclReflection.IteratedList.Iterator.count has unexpected size % instead of 4", size_of(type_of(DeclReflection.IteratedList.Iterator.count)));
-        assert(((cast(*void)(*instance.index)) - cast(*void)(*instance)) == 12, "DeclReflection.IteratedList.Iterator.index has unexpected offset % instead of 12", ((cast(*void)(*instance.index)) - cast(*void)(*instance)));
-        assert(size_of(type_of(DeclReflection.IteratedList.Iterator.index)) == 4, "DeclReflection.IteratedList.Iterator.index has unexpected size % instead of 4", size_of(type_of(DeclReflection.IteratedList.Iterator.index)));
+        info := type_info(DeclReflection.IteratedList.Iterator);
+        for info.members {
+            if it.name == {
+                case "parent";
+                    assert(it.offset_in_bytes == 0, "DeclReflection.IteratedList.Iterator.parent has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "DeclReflection.IteratedList.Iterator.parent has unexpected size % instead of 8", it.type.runtime_size);
+                case "count";
+                    assert(it.offset_in_bytes == 8, "DeclReflection.IteratedList.Iterator.count has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "DeclReflection.IteratedList.Iterator.count has unexpected size % instead of 4", it.type.runtime_size);
+                case "index";
+                    assert(it.offset_in_bytes == 12, "DeclReflection.IteratedList.Iterator.index has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "DeclReflection.IteratedList.Iterator.index has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
         assert(size_of(DeclReflection.IteratedList.Iterator) == 16, "DeclReflection.IteratedList.Iterator has size % instead of 16", size_of(DeclReflection.IteratedList.Iterator));
     }
 
     {
-        instance: DeclReflection.IteratedList;
-        assert(((cast(*void)(*instance.count)) - cast(*void)(*instance)) == 0, "DeclReflection.IteratedList.count has unexpected offset % instead of 0", ((cast(*void)(*instance.count)) - cast(*void)(*instance)));
-        assert(size_of(type_of(DeclReflection.IteratedList.count)) == 4, "DeclReflection.IteratedList.count has unexpected size % instead of 4", size_of(type_of(DeclReflection.IteratedList.count)));
-        assert(((cast(*void)(*instance.parent)) - cast(*void)(*instance)) == 8, "DeclReflection.IteratedList.parent has unexpected offset % instead of 8", ((cast(*void)(*instance.parent)) - cast(*void)(*instance)));
-        assert(size_of(type_of(DeclReflection.IteratedList.parent)) == 8, "DeclReflection.IteratedList.parent has unexpected size % instead of 8", size_of(type_of(DeclReflection.IteratedList.parent)));
+        info := type_info(DeclReflection.IteratedList);
+        for info.members {
+            if it.name == {
+                case "count";
+                    assert(it.offset_in_bytes == 0, "DeclReflection.IteratedList.count has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "DeclReflection.IteratedList.count has unexpected size % instead of 4", it.type.runtime_size);
+                case "parent";
+                    assert(it.offset_in_bytes == 8, "DeclReflection.IteratedList.parent has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "DeclReflection.IteratedList.parent has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
         assert(size_of(DeclReflection.IteratedList) == 16, "DeclReflection.IteratedList has size % instead of 16", size_of(DeclReflection.IteratedList));
     }
 
@@ -3252,67 +3766,107 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
     assert(size_of(IGlobalSession) == 8, "IGlobalSession has size % instead of 8", size_of(IGlobalSession));
 
     {
-        instance: TargetDesc;
-        assert(((cast(*void)(*instance.structureSize)) - cast(*void)(*instance)) == 0, "TargetDesc.structureSize has unexpected offset % instead of 0", ((cast(*void)(*instance.structureSize)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.structureSize)) == 8, "TargetDesc.structureSize has unexpected size % instead of 8", size_of(type_of(TargetDesc.structureSize)));
-        assert(((cast(*void)(*instance.format)) - cast(*void)(*instance)) == 8, "TargetDesc.format has unexpected offset % instead of 8", ((cast(*void)(*instance.format)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.format)) == 4, "TargetDesc.format has unexpected size % instead of 4", size_of(type_of(TargetDesc.format)));
-        assert(((cast(*void)(*instance.profile)) - cast(*void)(*instance)) == 12, "TargetDesc.profile has unexpected offset % instead of 12", ((cast(*void)(*instance.profile)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.profile)) == 4, "TargetDesc.profile has unexpected size % instead of 4", size_of(type_of(TargetDesc.profile)));
-        assert(((cast(*void)(*instance.flags)) - cast(*void)(*instance)) == 16, "TargetDesc.flags has unexpected offset % instead of 16", ((cast(*void)(*instance.flags)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.flags)) == 4, "TargetDesc.flags has unexpected size % instead of 4", size_of(type_of(TargetDesc.flags)));
-        assert(((cast(*void)(*instance.floatingPointMode)) - cast(*void)(*instance)) == 20, "TargetDesc.floatingPointMode has unexpected offset % instead of 20", ((cast(*void)(*instance.floatingPointMode)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.floatingPointMode)) == 4, "TargetDesc.floatingPointMode has unexpected size % instead of 4", size_of(type_of(TargetDesc.floatingPointMode)));
-        assert(((cast(*void)(*instance.lineDirectiveMode)) - cast(*void)(*instance)) == 24, "TargetDesc.lineDirectiveMode has unexpected offset % instead of 24", ((cast(*void)(*instance.lineDirectiveMode)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.lineDirectiveMode)) == 4, "TargetDesc.lineDirectiveMode has unexpected size % instead of 4", size_of(type_of(TargetDesc.lineDirectiveMode)));
-        assert(((cast(*void)(*instance.forceGLSLScalarBufferLayout)) - cast(*void)(*instance)) == 28, "TargetDesc.forceGLSLScalarBufferLayout has unexpected offset % instead of 28", ((cast(*void)(*instance.forceGLSLScalarBufferLayout)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.forceGLSLScalarBufferLayout)) == 1, "TargetDesc.forceGLSLScalarBufferLayout has unexpected size % instead of 1", size_of(type_of(TargetDesc.forceGLSLScalarBufferLayout)));
-        assert(((cast(*void)(*instance.compilerOptionEntries)) - cast(*void)(*instance)) == 32, "TargetDesc.compilerOptionEntries has unexpected offset % instead of 32", ((cast(*void)(*instance.compilerOptionEntries)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.compilerOptionEntries)) == 8, "TargetDesc.compilerOptionEntries has unexpected size % instead of 8", size_of(type_of(TargetDesc.compilerOptionEntries)));
-        assert(((cast(*void)(*instance.compilerOptionEntryCount)) - cast(*void)(*instance)) == 40, "TargetDesc.compilerOptionEntryCount has unexpected offset % instead of 40", ((cast(*void)(*instance.compilerOptionEntryCount)) - cast(*void)(*instance)));
-        assert(size_of(type_of(TargetDesc.compilerOptionEntryCount)) == 4, "TargetDesc.compilerOptionEntryCount has unexpected size % instead of 4", size_of(type_of(TargetDesc.compilerOptionEntryCount)));
+        info := type_info(TargetDesc);
+        for info.members {
+            if it.name == {
+                case "structureSize";
+                    assert(it.offset_in_bytes == 0, "TargetDesc.structureSize has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "TargetDesc.structureSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "format";
+                    assert(it.offset_in_bytes == 8, "TargetDesc.format has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.format has unexpected size % instead of 4", it.type.runtime_size);
+                case "profile";
+                    assert(it.offset_in_bytes == 12, "TargetDesc.profile has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.profile has unexpected size % instead of 4", it.type.runtime_size);
+                case "flags";
+                    assert(it.offset_in_bytes == 16, "TargetDesc.flags has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "floatingPointMode";
+                    assert(it.offset_in_bytes == 20, "TargetDesc.floatingPointMode has unexpected offset % instead of 20", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.floatingPointMode has unexpected size % instead of 4", it.type.runtime_size);
+                case "lineDirectiveMode";
+                    assert(it.offset_in_bytes == 24, "TargetDesc.lineDirectiveMode has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.lineDirectiveMode has unexpected size % instead of 4", it.type.runtime_size);
+                case "forceGLSLScalarBufferLayout";
+                    assert(it.offset_in_bytes == 28, "TargetDesc.forceGLSLScalarBufferLayout has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "TargetDesc.forceGLSLScalarBufferLayout has unexpected size % instead of 1", it.type.runtime_size);
+                case "compilerOptionEntries";
+                    assert(it.offset_in_bytes == 32, "TargetDesc.compilerOptionEntries has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "TargetDesc.compilerOptionEntries has unexpected size % instead of 8", it.type.runtime_size);
+                case "compilerOptionEntryCount";
+                    assert(it.offset_in_bytes == 40, "TargetDesc.compilerOptionEntryCount has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "TargetDesc.compilerOptionEntryCount has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
         assert(size_of(TargetDesc) == 48, "TargetDesc has size % instead of 48", size_of(TargetDesc));
     }
 
     {
-        instance: PreprocessorMacroDesc;
-        assert(((cast(*void)(*instance.name)) - cast(*void)(*instance)) == 0, "PreprocessorMacroDesc.name has unexpected offset % instead of 0", ((cast(*void)(*instance.name)) - cast(*void)(*instance)));
-        assert(size_of(type_of(PreprocessorMacroDesc.name)) == 8, "PreprocessorMacroDesc.name has unexpected size % instead of 8", size_of(type_of(PreprocessorMacroDesc.name)));
-        assert(((cast(*void)(*instance.value)) - cast(*void)(*instance)) == 8, "PreprocessorMacroDesc.value has unexpected offset % instead of 8", ((cast(*void)(*instance.value)) - cast(*void)(*instance)));
-        assert(size_of(type_of(PreprocessorMacroDesc.value)) == 8, "PreprocessorMacroDesc.value has unexpected size % instead of 8", size_of(type_of(PreprocessorMacroDesc.value)));
+        info := type_info(PreprocessorMacroDesc);
+        for info.members {
+            if it.name == {
+                case "name";
+                    assert(it.offset_in_bytes == 0, "PreprocessorMacroDesc.name has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PreprocessorMacroDesc.name has unexpected size % instead of 8", it.type.runtime_size);
+                case "value";
+                    assert(it.offset_in_bytes == 8, "PreprocessorMacroDesc.value has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "PreprocessorMacroDesc.value has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
         assert(size_of(PreprocessorMacroDesc) == 16, "PreprocessorMacroDesc has size % instead of 16", size_of(PreprocessorMacroDesc));
     }
 
     {
-        instance: SessionDesc;
-        assert(((cast(*void)(*instance.structureSize)) - cast(*void)(*instance)) == 0, "SessionDesc.structureSize has unexpected offset % instead of 0", ((cast(*void)(*instance.structureSize)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.structureSize)) == 8, "SessionDesc.structureSize has unexpected size % instead of 8", size_of(type_of(SessionDesc.structureSize)));
-        assert(((cast(*void)(*instance.targets)) - cast(*void)(*instance)) == 8, "SessionDesc.targets has unexpected offset % instead of 8", ((cast(*void)(*instance.targets)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.targets)) == 8, "SessionDesc.targets has unexpected size % instead of 8", size_of(type_of(SessionDesc.targets)));
-        assert(((cast(*void)(*instance.targetCount)) - cast(*void)(*instance)) == 16, "SessionDesc.targetCount has unexpected offset % instead of 16", ((cast(*void)(*instance.targetCount)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.targetCount)) == 8, "SessionDesc.targetCount has unexpected size % instead of 8", size_of(type_of(SessionDesc.targetCount)));
-        assert(((cast(*void)(*instance.flags)) - cast(*void)(*instance)) == 24, "SessionDesc.flags has unexpected offset % instead of 24", ((cast(*void)(*instance.flags)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.flags)) == 4, "SessionDesc.flags has unexpected size % instead of 4", size_of(type_of(SessionDesc.flags)));
-        assert(((cast(*void)(*instance.defaultMatrixLayoutMode)) - cast(*void)(*instance)) == 28, "SessionDesc.defaultMatrixLayoutMode has unexpected offset % instead of 28", ((cast(*void)(*instance.defaultMatrixLayoutMode)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.defaultMatrixLayoutMode)) == 4, "SessionDesc.defaultMatrixLayoutMode has unexpected size % instead of 4", size_of(type_of(SessionDesc.defaultMatrixLayoutMode)));
-        assert(((cast(*void)(*instance.searchPaths)) - cast(*void)(*instance)) == 32, "SessionDesc.searchPaths has unexpected offset % instead of 32", ((cast(*void)(*instance.searchPaths)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.searchPaths)) == 8, "SessionDesc.searchPaths has unexpected size % instead of 8", size_of(type_of(SessionDesc.searchPaths)));
-        assert(((cast(*void)(*instance.searchPathCount)) - cast(*void)(*instance)) == 40, "SessionDesc.searchPathCount has unexpected offset % instead of 40", ((cast(*void)(*instance.searchPathCount)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.searchPathCount)) == 8, "SessionDesc.searchPathCount has unexpected size % instead of 8", size_of(type_of(SessionDesc.searchPathCount)));
-        assert(((cast(*void)(*instance.preprocessorMacros)) - cast(*void)(*instance)) == 48, "SessionDesc.preprocessorMacros has unexpected offset % instead of 48", ((cast(*void)(*instance.preprocessorMacros)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.preprocessorMacros)) == 8, "SessionDesc.preprocessorMacros has unexpected size % instead of 8", size_of(type_of(SessionDesc.preprocessorMacros)));
-        assert(((cast(*void)(*instance.preprocessorMacroCount)) - cast(*void)(*instance)) == 56, "SessionDesc.preprocessorMacroCount has unexpected offset % instead of 56", ((cast(*void)(*instance.preprocessorMacroCount)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.preprocessorMacroCount)) == 8, "SessionDesc.preprocessorMacroCount has unexpected size % instead of 8", size_of(type_of(SessionDesc.preprocessorMacroCount)));
-        assert(((cast(*void)(*instance.fileSystem)) - cast(*void)(*instance)) == 64, "SessionDesc.fileSystem has unexpected offset % instead of 64", ((cast(*void)(*instance.fileSystem)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.fileSystem)) == 8, "SessionDesc.fileSystem has unexpected size % instead of 8", size_of(type_of(SessionDesc.fileSystem)));
-        assert(((cast(*void)(*instance.enableEffectAnnotations)) - cast(*void)(*instance)) == 72, "SessionDesc.enableEffectAnnotations has unexpected offset % instead of 72", ((cast(*void)(*instance.enableEffectAnnotations)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.enableEffectAnnotations)) == 1, "SessionDesc.enableEffectAnnotations has unexpected size % instead of 1", size_of(type_of(SessionDesc.enableEffectAnnotations)));
-        assert(((cast(*void)(*instance.allowGLSLSyntax)) - cast(*void)(*instance)) == 73, "SessionDesc.allowGLSLSyntax has unexpected offset % instead of 73", ((cast(*void)(*instance.allowGLSLSyntax)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.allowGLSLSyntax)) == 1, "SessionDesc.allowGLSLSyntax has unexpected size % instead of 1", size_of(type_of(SessionDesc.allowGLSLSyntax)));
-        assert(((cast(*void)(*instance.compilerOptionEntries)) - cast(*void)(*instance)) == 80, "SessionDesc.compilerOptionEntries has unexpected offset % instead of 80", ((cast(*void)(*instance.compilerOptionEntries)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.compilerOptionEntries)) == 8, "SessionDesc.compilerOptionEntries has unexpected size % instead of 8", size_of(type_of(SessionDesc.compilerOptionEntries)));
-        assert(((cast(*void)(*instance.compilerOptionEntryCount)) - cast(*void)(*instance)) == 88, "SessionDesc.compilerOptionEntryCount has unexpected offset % instead of 88", ((cast(*void)(*instance.compilerOptionEntryCount)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SessionDesc.compilerOptionEntryCount)) == 4, "SessionDesc.compilerOptionEntryCount has unexpected size % instead of 4", size_of(type_of(SessionDesc.compilerOptionEntryCount)));
+        info := type_info(SessionDesc);
+        for info.members {
+            if it.name == {
+                case "structureSize";
+                    assert(it.offset_in_bytes == 0, "SessionDesc.structureSize has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.structureSize has unexpected size % instead of 8", it.type.runtime_size);
+                case "targets";
+                    assert(it.offset_in_bytes == 8, "SessionDesc.targets has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.targets has unexpected size % instead of 8", it.type.runtime_size);
+                case "targetCount";
+                    assert(it.offset_in_bytes == 16, "SessionDesc.targetCount has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.targetCount has unexpected size % instead of 8", it.type.runtime_size);
+                case "flags";
+                    assert(it.offset_in_bytes == 24, "SessionDesc.flags has unexpected offset % instead of 24", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SessionDesc.flags has unexpected size % instead of 4", it.type.runtime_size);
+                case "defaultMatrixLayoutMode";
+                    assert(it.offset_in_bytes == 28, "SessionDesc.defaultMatrixLayoutMode has unexpected offset % instead of 28", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SessionDesc.defaultMatrixLayoutMode has unexpected size % instead of 4", it.type.runtime_size);
+                case "searchPaths";
+                    assert(it.offset_in_bytes == 32, "SessionDesc.searchPaths has unexpected offset % instead of 32", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.searchPaths has unexpected size % instead of 8", it.type.runtime_size);
+                case "searchPathCount";
+                    assert(it.offset_in_bytes == 40, "SessionDesc.searchPathCount has unexpected offset % instead of 40", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.searchPathCount has unexpected size % instead of 8", it.type.runtime_size);
+                case "preprocessorMacros";
+                    assert(it.offset_in_bytes == 48, "SessionDesc.preprocessorMacros has unexpected offset % instead of 48", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.preprocessorMacros has unexpected size % instead of 8", it.type.runtime_size);
+                case "preprocessorMacroCount";
+                    assert(it.offset_in_bytes == 56, "SessionDesc.preprocessorMacroCount has unexpected offset % instead of 56", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.preprocessorMacroCount has unexpected size % instead of 8", it.type.runtime_size);
+                case "fileSystem";
+                    assert(it.offset_in_bytes == 64, "SessionDesc.fileSystem has unexpected offset % instead of 64", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.fileSystem has unexpected size % instead of 8", it.type.runtime_size);
+                case "enableEffectAnnotations";
+                    assert(it.offset_in_bytes == 72, "SessionDesc.enableEffectAnnotations has unexpected offset % instead of 72", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SessionDesc.enableEffectAnnotations has unexpected size % instead of 1", it.type.runtime_size);
+                case "allowGLSLSyntax";
+                    assert(it.offset_in_bytes == 73, "SessionDesc.allowGLSLSyntax has unexpected offset % instead of 73", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SessionDesc.allowGLSLSyntax has unexpected size % instead of 1", it.type.runtime_size);
+                case "compilerOptionEntries";
+                    assert(it.offset_in_bytes == 80, "SessionDesc.compilerOptionEntries has unexpected offset % instead of 80", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SessionDesc.compilerOptionEntries has unexpected size % instead of 8", it.type.runtime_size);
+                case "compilerOptionEntryCount";
+                    assert(it.offset_in_bytes == 88, "SessionDesc.compilerOptionEntryCount has unexpected offset % instead of 88", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SessionDesc.compilerOptionEntryCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "skipSPIRVValidation";
+                    assert(it.offset_in_bytes == 92, "SessionDesc.skipSPIRVValidation has unexpected offset % instead of 92", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SessionDesc.skipSPIRVValidation has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
         assert(size_of(SessionDesc) == 96, "SessionDesc has size % instead of 96", size_of(SessionDesc));
     }
 
@@ -3320,33 +3874,115 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
 
     assert(size_of(IMetadata) == 8, "IMetadata has size % instead of 8", size_of(IMetadata));
 
+    assert(size_of(ICompileResult) == 8, "ICompileResult has size % instead of 8", size_of(ICompileResult));
+
     assert(size_of(IComponentType) == 8, "IComponentType has size % instead of 8", size_of(IComponentType));
 
     assert(size_of(IEntryPoint) == 8, "IEntryPoint has size % instead of 8", size_of(IEntryPoint));
 
     assert(size_of(ITypeConformance) == 8, "ITypeConformance has size % instead of 8", size_of(ITypeConformance));
 
+    assert(size_of(IComponentType2) == 8, "IComponentType2 has size % instead of 8", size_of(IComponentType2));
+
     assert(size_of(IModule) == 8, "IModule has size % instead of 8", size_of(IModule));
 
     assert(size_of(IModulePrecompileService_Experimental) == 8, "IModulePrecompileService_Experimental has size % instead of 8", size_of(IModulePrecompileService_Experimental));
 
     {
-        instance: SpecializationArg;
-        assert(((cast(*void)(*instance.kind)) - cast(*void)(*instance)) == 0, "SpecializationArg.kind has unexpected offset % instead of 0", ((cast(*void)(*instance.kind)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SpecializationArg.kind)) == 4, "SpecializationArg.kind has unexpected size % instead of 4", size_of(type_of(SpecializationArg.kind)));
+        info := type_info(SpecializationArg);
+        for info.members {
+            if it.name == {
+                case "kind";
+                    assert(it.offset_in_bytes == 0, "SpecializationArg.kind has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SpecializationArg.kind has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
         assert(size_of(SpecializationArg) == 16, "SpecializationArg has size % instead of 16", size_of(SpecializationArg));
     }
 
     {
-        instance: SlangUUID;
-        assert(((cast(*void)(*instance.data1)) - cast(*void)(*instance)) == 0, "SlangUUID.data1 has unexpected offset % instead of 0", ((cast(*void)(*instance.data1)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangUUID.data1)) == 4, "SlangUUID.data1 has unexpected size % instead of 4", size_of(type_of(SlangUUID.data1)));
-        assert(((cast(*void)(*instance.data2)) - cast(*void)(*instance)) == 4, "SlangUUID.data2 has unexpected offset % instead of 4", ((cast(*void)(*instance.data2)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangUUID.data2)) == 2, "SlangUUID.data2 has unexpected size % instead of 2", size_of(type_of(SlangUUID.data2)));
-        assert(((cast(*void)(*instance.data3)) - cast(*void)(*instance)) == 6, "SlangUUID.data3 has unexpected offset % instead of 6", ((cast(*void)(*instance.data3)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangUUID.data3)) == 2, "SlangUUID.data3 has unexpected size % instead of 2", size_of(type_of(SlangUUID.data3)));
-        assert(((cast(*void)(*instance.data4)) - cast(*void)(*instance)) == 8, "SlangUUID.data4 has unexpected offset % instead of 8", ((cast(*void)(*instance.data4)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangUUID.data4)) == 8, "SlangUUID.data4 has unexpected size % instead of 8", size_of(type_of(SlangUUID.data4)));
+        info := type_info(VMExecOperand);
+        for info.members {
+            if it.name == {
+                case "section";
+                    assert(it.offset_in_bytes == 0, "VMExecOperand.section has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "VMExecOperand.section has unexpected size % instead of 8", it.type.runtime_size);
+                case "__bitfield";
+                    assert(it.offset_in_bytes == 8, "VMExecOperand.__bitfield has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "VMExecOperand.__bitfield has unexpected size % instead of 4", it.type.runtime_size);
+                case "offset";
+                    assert(it.offset_in_bytes == 12, "VMExecOperand.offset has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "VMExecOperand.offset has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(VMExecOperand) == 16, "VMExecOperand has size % instead of 16", size_of(VMExecOperand));
+    }
+
+    {
+        info := type_info(VMExecInstHeader);
+        for info.members {
+            if it.name == {
+                case "functionPtr";
+                    assert(it.offset_in_bytes == 0, "VMExecInstHeader.functionPtr has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "VMExecInstHeader.functionPtr has unexpected size % instead of 8", it.type.runtime_size);
+                case "opcodeExtension";
+                    assert(it.offset_in_bytes == 8, "VMExecInstHeader.opcodeExtension has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "VMExecInstHeader.opcodeExtension has unexpected size % instead of 4", it.type.runtime_size);
+                case "operandCount";
+                    assert(it.offset_in_bytes == 12, "VMExecInstHeader.operandCount has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "VMExecInstHeader.operandCount has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(VMExecInstHeader) == 16, "VMExecInstHeader has size % instead of 16", size_of(VMExecInstHeader));
+    }
+
+    {
+        info := type_info(ByteCodeFuncInfo);
+        for info.members {
+            if it.name == {
+                case "parameterCount";
+                    assert(it.offset_in_bytes == 0, "ByteCodeFuncInfo.parameterCount has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ByteCodeFuncInfo.parameterCount has unexpected size % instead of 4", it.type.runtime_size);
+                case "returnValueSize";
+                    assert(it.offset_in_bytes == 4, "ByteCodeFuncInfo.returnValueSize has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "ByteCodeFuncInfo.returnValueSize has unexpected size % instead of 4", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ByteCodeFuncInfo) == 8, "ByteCodeFuncInfo has size % instead of 8", size_of(ByteCodeFuncInfo));
+    }
+
+    {
+        info := type_info(ByteCodeRunnerDesc);
+        for info.members {
+            if it.name == {
+                case "structSize";
+                    assert(it.offset_in_bytes == 0, "ByteCodeRunnerDesc.structSize has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ByteCodeRunnerDesc.structSize has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ByteCodeRunnerDesc) == 8, "ByteCodeRunnerDesc has size % instead of 8", size_of(ByteCodeRunnerDesc));
+    }
+
+    assert(size_of(IByteCodeRunner) == 8, "IByteCodeRunner has size % instead of 8", size_of(IByteCodeRunner));
+
+    {
+        info := type_info(SlangUUID);
+        for info.members {
+            if it.name == {
+                case "data1";
+                    assert(it.offset_in_bytes == 0, "SlangUUID.data1 has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SlangUUID.data1 has unexpected size % instead of 4", it.type.runtime_size);
+                case "data2";
+                    assert(it.offset_in_bytes == 4, "SlangUUID.data2 has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "SlangUUID.data2 has unexpected size % instead of 2", it.type.runtime_size);
+                case "data3";
+                    assert(it.offset_in_bytes == 6, "SlangUUID.data3 has unexpected offset % instead of 6", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 2, "SlangUUID.data3 has unexpected size % instead of 2", it.type.runtime_size);
+                case "data4";
+                    assert(it.offset_in_bytes == 8, "SlangUUID.data4 has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SlangUUID.data4 has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
         assert(size_of(SlangUUID) == 16, "SlangUUID has size % instead of 16", size_of(SlangUUID));
     }
 
@@ -3359,9 +3995,14 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
     assert(size_of(ISlangBlob) == 8, "ISlangBlob has size % instead of 8", size_of(ISlangBlob));
 
     {
-        instance: SlangTerminatedChars;
-        assert(((cast(*void)(*instance.chars)) - cast(*void)(*instance)) == 0, "SlangTerminatedChars.chars has unexpected offset % instead of 0", ((cast(*void)(*instance.chars)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangTerminatedChars.chars)) == 1, "SlangTerminatedChars.chars has unexpected size % instead of 1", size_of(type_of(SlangTerminatedChars.chars)));
+        info := type_info(SlangTerminatedChars);
+        for info.members {
+            if it.name == {
+                case "chars";
+                    assert(it.offset_in_bytes == 0, "SlangTerminatedChars.chars has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SlangTerminatedChars.chars has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
         assert(size_of(SlangTerminatedChars) == 1, "SlangTerminatedChars has size % instead of 1", size_of(SlangTerminatedChars));
     }
 
@@ -3382,14 +4023,45 @@ slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
     assert(size_of(ISlangProfiler) == 8, "ISlangProfiler has size % instead of 8", size_of(ISlangProfiler));
 
     {
-        instance: SlangReflectionGenericArg;
-        assert(((cast(*void)(*instance.typeVal)) - cast(*void)(*instance)) == 0, "SlangReflectionGenericArg.typeVal has unexpected offset % instead of 0", ((cast(*void)(*instance.typeVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangReflectionGenericArg.typeVal)) == 8, "SlangReflectionGenericArg.typeVal has unexpected size % instead of 8", size_of(type_of(SlangReflectionGenericArg.typeVal)));
-        assert(((cast(*void)(*instance.intVal)) - cast(*void)(*instance)) == 0, "SlangReflectionGenericArg.intVal has unexpected offset % instead of 0", ((cast(*void)(*instance.intVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangReflectionGenericArg.intVal)) == 8, "SlangReflectionGenericArg.intVal has unexpected size % instead of 8", size_of(type_of(SlangReflectionGenericArg.intVal)));
-        assert(((cast(*void)(*instance.boolVal)) - cast(*void)(*instance)) == 0, "SlangReflectionGenericArg.boolVal has unexpected offset % instead of 0", ((cast(*void)(*instance.boolVal)) - cast(*void)(*instance)));
-        assert(size_of(type_of(SlangReflectionGenericArg.boolVal)) == 1, "SlangReflectionGenericArg.boolVal has unexpected size % instead of 1", size_of(type_of(SlangReflectionGenericArg.boolVal)));
+        info := type_info(SlangReflectionGenericArg);
+        for info.members {
+            if it.name == {
+                case "typeVal";
+                    assert(it.offset_in_bytes == 0, "SlangReflectionGenericArg.typeVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SlangReflectionGenericArg.typeVal has unexpected size % instead of 8", it.type.runtime_size);
+                case "intVal";
+                    assert(it.offset_in_bytes == 0, "SlangReflectionGenericArg.intVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SlangReflectionGenericArg.intVal has unexpected size % instead of 8", it.type.runtime_size);
+                case "boolVal";
+                    assert(it.offset_in_bytes == 0, "SlangReflectionGenericArg.boolVal has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SlangReflectionGenericArg.boolVal has unexpected size % instead of 1", it.type.runtime_size);
+            }
+        }
         assert(size_of(SlangReflectionGenericArg) == 8, "SlangReflectionGenericArg has size % instead of 8", size_of(SlangReflectionGenericArg));
+    }
+
+    {
+        info := type_info(SlangGlobalSessionDesc);
+        for info.members {
+            if it.name == {
+                case "structureSize";
+                    assert(it.offset_in_bytes == 0, "SlangGlobalSessionDesc.structureSize has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SlangGlobalSessionDesc.structureSize has unexpected size % instead of 4", it.type.runtime_size);
+                case "apiVersion";
+                    assert(it.offset_in_bytes == 4, "SlangGlobalSessionDesc.apiVersion has unexpected offset % instead of 4", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SlangGlobalSessionDesc.apiVersion has unexpected size % instead of 4", it.type.runtime_size);
+                case "minLanguageVersion";
+                    assert(it.offset_in_bytes == 8, "SlangGlobalSessionDesc.minLanguageVersion has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 4, "SlangGlobalSessionDesc.minLanguageVersion has unexpected size % instead of 4", it.type.runtime_size);
+                case "enableGLSL";
+                    assert(it.offset_in_bytes == 12, "SlangGlobalSessionDesc.enableGLSL has unexpected offset % instead of 12", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 1, "SlangGlobalSessionDesc.enableGLSL has unexpected size % instead of 1", it.type.runtime_size);
+                case "reserved";
+                    assert(it.offset_in_bytes == 16, "SlangGlobalSessionDesc.reserved has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 64, "SlangGlobalSessionDesc.reserved has unexpected size % instead of 64", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SlangGlobalSessionDesc) == 80, "SlangGlobalSessionDesc has size % instead of 80", size_of(SlangGlobalSessionDesc));
     }
 }
 
