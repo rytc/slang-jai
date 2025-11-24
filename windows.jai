@@ -141,6 +141,8 @@ SLANG_UNALIGNED_ACCESS :: 1;
 
 SLANG_BIG_ENDIAN :: 0;
 
+SLANG_HAS_BACKTRACE :: 0;
+
 SLANG_FACILITY_WIN_GENERAL :: 0;
 SLANG_FACILITY_WIN_INTERFACE :: 4;
 SLANG_FACILITY_WIN_API :: 7;
@@ -791,7 +793,13 @@ CompilerOptionName :: enum s32 {
     DenormalModeFp32                  :: 124;
     DenormalModeFp64                  :: 125;
 
-    CountOf                           :: 126;
+    UseMSVCStyleBitfieldPacking       :: 126;
+
+    ForceCLayout                      :: 127;
+
+    ExperimentalFeature               :: 128;
+
+    CountOf                           :: 129;
 }
 
 CompilerOptionValueKind :: enum s32 {
@@ -901,6 +909,7 @@ ICompileRequest_VTable :: struct #type_info_none {
     setTargetGenerateWholeProgram:                #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
     setTargetForceDXLayout:                       #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
     setTargetEmbedDownstreamIR:                   #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
+    setTargetForceCLayout:                        #type (this: *ICompileRequest, targetIndex: s32, value: bool) -> void #cpp_method;
 }
 ICompileRequest_setFileSystem :: inline (this: *ICompileRequest, fileSystem: *ISlangFileSystem) { this.vtable.setFileSystem(this, fileSystem); }
 
@@ -1061,6 +1070,8 @@ ICompileRequest_setTargetGenerateWholeProgram :: inline (this: *ICompileRequest,
 ICompileRequest_setTargetForceDXLayout :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetForceDXLayout(this, targetIndex, value); }
 
 ICompileRequest_setTargetEmbedDownstreamIR :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetEmbedDownstreamIR(this, targetIndex, value); }
+
+ICompileRequest_setTargetForceCLayout :: inline (this: *ICompileRequest, targetIndex: s32, value: bool) { this.vtable.setTargetForceCLayout(this, targetIndex, value); }
 
 vtable :: (obj: *ICompileRequest) -> *ICompileRequest_VTable { return obj.vtable; }
 
@@ -1927,6 +1938,7 @@ SpecializationArg :: struct {
     Kind :: enum s32 {
         Unknown :: 0;
         Type    :: 1;
+        Expr    :: 2;
     }
 
     /** The kind of specialization argument. */
@@ -1934,6 +1946,9 @@ SpecializationArg :: struct {
     union {
         /** A type specialization argument, used for `Kind::Type`. */
         type: *TypeReflection;
+
+        /** An expression in Slang syntax, used for `Kind::Expr`. */
+        expr: *u8;
     }
 }
 
@@ -2409,24 +2424,6 @@ SlangCompileRequest :: ICompileRequest;
 @brief Callback type used for diagnostic output.
 */
 SlangDiagnosticCallback :: #type (message: *u8, userData: *void) -> void #c_call;
-
-/*!
-@brief Get the build version 'tag' string. The string is the same as
-produced via `git describe --tags --match v*` for the project. If such a
-version could not be determined at build time then the contents will be
-0.0.0-unknown. Any string can be set by passing
--DSLANG_VERSION_FULL=whatever during the cmake invocation.
-
-This function will return exactly the same result as the method
-getBuildTagString on IGlobalSession.
-
-An advantage of using this function over the method is that doing so does
-not require the creation of a session, which can be a fairly costly
-operation.
-
-@return The build tag string
-*/
-spGetBuildTagString :: () -> *u8 #foreign slang;
 
 SlangEntryPoint :: struct {}
 SlangEntryPointLayout :: struct {}
@@ -2973,642 +2970,6 @@ SlangImageFormat :: enum SlangImageFormatIntegral {
 // Shader Parameter Reflection
 SlangReflectionParameter :: SlangReflectionVariableLayout;
 
-/*!
-@brief Initialize an instance of the Slang library.
-*/
-spCreateSession :: (deprecated: *u8 = null) -> *SlangSession #foreign slang;
-
-/*!
-@brief Clean up after an instance of the Slang library.
-*/
-spDestroySession :: (session: *SlangSession) -> void #foreign slang;
-
-/** @see slang::IGlobalSession::setSharedLibraryLoader
-*/
-spSessionSetSharedLibraryLoader :: (session: *SlangSession, loader: *ISlangSharedLibraryLoader) -> void #foreign slang;
-
-/** @see slang::IGlobalSession::getSharedLibraryLoader
-*/
-spSessionGetSharedLibraryLoader :: (session: *SlangSession) -> *ISlangSharedLibraryLoader #foreign slang;
-
-/** @see slang::IGlobalSession::checkCompileTargetSupport
-*/
-spSessionCheckCompileTargetSupport :: (session: *SlangSession, target: SlangCompileTarget) -> SlangResult #foreign slang;
-
-/** @see slang::IGlobalSession::checkPassThroughSupport
-*/
-spSessionCheckPassThroughSupport :: (session: *SlangSession, passThrough: SlangPassThrough) -> SlangResult #foreign slang;
-
-/** @see slang::IGlobalSession::addBuiltins
-*/
-spAddBuiltins :: (session: *SlangSession, sourcePath: *u8, sourceString: *u8) -> void #foreign slang;
-
-/* @see slang::IGlobalSession::createCompileRequest
-*/
-spCreateCompileRequest :: (session: *SlangSession) -> *SlangCompileRequest #foreign slang;
-
-/*!
-@brief Destroy a compile request.
-Note a request is a COM object and can be destroyed via 'Release'.
-*/
-spDestroyCompileRequest :: (request: *SlangCompileRequest) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setFileSystem */
-spSetFileSystem :: (request: *SlangCompileRequest, fileSystem: *ISlangFileSystem) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setCompileFlags */
-spSetCompileFlags :: (request: *SlangCompileRequest, flags: SlangCompileFlags) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::getCompileFlags */
-spGetCompileFlags :: (request: *SlangCompileRequest) -> SlangCompileFlags #foreign slang;
-
-/*! @see slang::ICompileRequest::setDumpIntermediates */
-spSetDumpIntermediates :: (request: *SlangCompileRequest, enable: s32) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setDumpIntermediatePrefix */
-spSetDumpIntermediatePrefix :: (request: *SlangCompileRequest, prefix: *u8) -> void #foreign slang;
-
-/*! DEPRECATED: use `spSetTargetLineDirectiveMode` instead.
-@see slang::ICompileRequest::setLineDirectiveMode */
-spSetLineDirectiveMode :: (request: *SlangCompileRequest, mode: SlangLineDirectiveMode) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetLineDirectiveMode */
-spSetTargetLineDirectiveMode :: (request: *SlangCompileRequest, targetIndex: s32, mode: SlangLineDirectiveMode) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetLineDirectiveMode */
-spSetTargetForceGLSLScalarBufferLayout :: (request: *SlangCompileRequest, targetIndex: s32, forceScalarLayout: bool) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetUseMinimumSlangOptimization */
-spSetTargetUseMinimumSlangOptimization :: (request: *ICompileRequest, targetIndex: s32, val: bool) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setIgnoreCapabilityCheck */
-spSetIgnoreCapabilityCheck :: (request: *ICompileRequest, val: bool) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setCodeGenTarget */
-spSetCodeGenTarget :: (request: *SlangCompileRequest, target: SlangCompileTarget) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addCodeGenTarget */
-spAddCodeGenTarget :: (request: *SlangCompileRequest, target: SlangCompileTarget) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetProfile */
-spSetTargetProfile :: (request: *SlangCompileRequest, targetIndex: s32, profile: SlangProfileID) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetFlags */
-spSetTargetFlags :: (request: *SlangCompileRequest, targetIndex: s32, flags: SlangTargetFlags) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setTargetFloatingPointMode */
-spSetTargetFloatingPointMode :: (request: *SlangCompileRequest, targetIndex: s32, mode: SlangFloatingPointMode) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addTargetCapability */
-spAddTargetCapability :: (request: *ICompileRequest, targetIndex: s32, capability: SlangCapabilityID) -> void #foreign slang;
-
-/* DEPRECATED: use `spSetMatrixLayoutMode` instead. */
-spSetTargetMatrixLayoutMode :: (request: *SlangCompileRequest, targetIndex: s32, mode: SlangMatrixLayoutMode) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setMatrixLayoutMode */
-spSetMatrixLayoutMode :: (request: *SlangCompileRequest, mode: SlangMatrixLayoutMode) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setDebugInfoLevel */
-spSetDebugInfoLevel :: (request: *SlangCompileRequest, level: SlangDebugInfoLevel) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setDebugInfoFormat */
-spSetDebugInfoFormat :: (request: *SlangCompileRequest, format: SlangDebugInfoFormat) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setOptimizationLevel */
-spSetOptimizationLevel :: (request: *SlangCompileRequest, level: SlangOptimizationLevel) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setOutputContainerFormat */
-spSetOutputContainerFormat :: (request: *SlangCompileRequest, format: SlangContainerFormat) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setPassThrough */
-spSetPassThrough :: (request: *SlangCompileRequest, passThrough: SlangPassThrough) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setDiagnosticCallback */
-spSetDiagnosticCallback :: (request: *SlangCompileRequest, callback: SlangDiagnosticCallback, userData: *void) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::setWriter */
-spSetWriter :: (request: *SlangCompileRequest, channel: SlangWriterChannel, writer: *ISlangWriter) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::getWriter */
-spGetWriter :: (request: *SlangCompileRequest, channel: SlangWriterChannel) -> *ISlangWriter #foreign slang;
-
-/*! @see slang::ICompileRequest::addSearchPath */
-spAddSearchPath :: (request: *SlangCompileRequest, searchDir: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addPreprocessorDefine */
-spAddPreprocessorDefine :: (request: *SlangCompileRequest, key: *u8, value: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::processCommandLineArguments */
-spProcessCommandLineArguments :: (request: *SlangCompileRequest, args: **u8, argCount: s32) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::addTranslationUnit */
-spAddTranslationUnit :: (request: *SlangCompileRequest, language: SlangSourceLanguage, name: *u8) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::setDefaultModuleName */
-spSetDefaultModuleName :: (request: *SlangCompileRequest, defaultModuleName: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addPreprocessorDefine */
-spTranslationUnit_addPreprocessorDefine :: (request: *SlangCompileRequest, translationUnitIndex: s32, key: *u8, value: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addTranslationUnitSourceFile */
-spAddTranslationUnitSourceFile :: (request: *SlangCompileRequest, translationUnitIndex: s32, path: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addTranslationUnitSourceString */
-spAddTranslationUnitSourceString :: (request: *SlangCompileRequest, translationUnitIndex: s32, path: *u8, source: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addLibraryReference */
-spAddLibraryReference :: (request: *SlangCompileRequest, basePath: *u8, libData: *void, libDataSize: u64) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::addTranslationUnitSourceStringSpan */
-spAddTranslationUnitSourceStringSpan :: (request: *SlangCompileRequest, translationUnitIndex: s32, path: *u8, sourceBegin: *u8, sourceEnd: *u8) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::addTranslationUnitSourceBlob */
-spAddTranslationUnitSourceBlob :: (request: *SlangCompileRequest, translationUnitIndex: s32, path: *u8, sourceBlob: *ISlangBlob) -> void #foreign slang;
-
-/*! @see slang::IGlobalSession::findProfile */
-spFindProfile :: (session: *SlangSession, name: *u8) -> SlangProfileID #foreign slang;
-
-/*! @see slang::IGlobalSession::findCapability */
-spFindCapability :: (session: *SlangSession, name: *u8) -> SlangCapabilityID #foreign slang;
-
-/*! @see slang::ICompileRequest::addEntryPoint */
-spAddEntryPoint :: (request: *SlangCompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::addEntryPointEx */
-spAddEntryPointEx :: (request: *SlangCompileRequest, translationUnitIndex: s32, name: *u8, stage: SlangStage, genericArgCount: s32, genericArgs: **u8) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::setGlobalGenericArgs */
-spSetGlobalGenericArgs :: (request: *SlangCompileRequest, genericArgCount: s32, genericArgs: **u8) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::setTypeNameForGlobalExistentialTypeParam */
-spSetTypeNameForGlobalExistentialTypeParam :: (request: *SlangCompileRequest, slotIndex: s32, typeName: *u8) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::setTypeNameForEntryPointExistentialTypeParam */
-spSetTypeNameForEntryPointExistentialTypeParam :: (request: *SlangCompileRequest, entryPointIndex: s32, slotIndex: s32, typeName: *u8) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::compile */
-spCompile :: (request: *SlangCompileRequest) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getDiagnosticOutput */
-spGetDiagnosticOutput :: (request: *SlangCompileRequest) -> *u8 #foreign slang;
-
-/*! @see slang::ICompileRequest::getDiagnosticOutputBlob */
-spGetDiagnosticOutputBlob :: (request: *SlangCompileRequest, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getDependencyFileCount */
-spGetDependencyFileCount :: (request: *SlangCompileRequest) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::getDependencyFilePath */
-spGetDependencyFilePath :: (request: *SlangCompileRequest, index: s32) -> *u8 #foreign slang;
-
-/*! @see slang::ICompileRequest::getTranslationUnitCount */
-spGetTranslationUnitCount :: (request: *SlangCompileRequest) -> s32 #foreign slang;
-
-/*! @see slang::ICompileRequest::getEntryPointSource */
-spGetEntryPointSource :: (request: *SlangCompileRequest, entryPointIndex: s32) -> *u8 #foreign slang;
-
-/*! @see slang::ICompileRequest::getEntryPointCode */
-spGetEntryPointCode :: (request: *SlangCompileRequest, entryPointIndex: s32, outSize: *u64) -> *void #foreign slang;
-
-/*! @see slang::ICompileRequest::getEntryPointCodeBlob */
-spGetEntryPointCodeBlob :: (request: *SlangCompileRequest, entryPointIndex: s32, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getEntryPointHostCallable */
-spGetEntryPointHostCallable :: (request: *SlangCompileRequest, entryPointIndex: s32, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getTargetCodeBlob */
-spGetTargetCodeBlob :: (request: *SlangCompileRequest, targetIndex: s32, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getTargetHostCallable */
-spGetTargetHostCallable :: (request: *SlangCompileRequest, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getCompileRequestCode */
-spGetCompileRequestCode :: (request: *SlangCompileRequest, outSize: *u64) -> *void #foreign slang;
-
-/*! @see slang::ICompileRequest::getContainerCode */
-spGetContainerCode :: (request: *SlangCompileRequest, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::loadRepro */
-spLoadRepro :: (request: *SlangCompileRequest, fileSystem: *ISlangFileSystem, data: *void, size: u64) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::saveRepro */
-spSaveRepro :: (request: *SlangCompileRequest, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::enableReproCapture */
-spEnableReproCapture :: (request: *SlangCompileRequest) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::getCompileTimeProfile */
-spGetCompileTimeProfile :: (request: *SlangCompileRequest, compileTimeProfile: **ISlangProfiler, shouldClear: bool) -> SlangResult #foreign slang;
-
-/** Extract contents of a repro.
-
-Writes the contained files and manifest with their 'unique' names into fileSystem. For more
-details read the docs/repro.md documentation.
-
-@param session          The slang session
-@param reproData        Holds the repro data
-@param reproDataSize    The size of the repro data
-@param fileSystem       File system that the contents of the repro will be written to
-@returns                A `SlangResult` to indicate success or failure.
-*/
-spExtractRepro :: (session: *SlangSession, reproData: *void, reproDataSize: u64, fileSystem: *ISlangMutableFileSystem) -> SlangResult #foreign slang;
-
-/* Turns a repro into a file system.
-
-Makes the contents of the repro available as a file system - that is able to access the files
-with the same paths as were used on the original repro file system.
-
-@param session          The slang session
-@param reproData        The repro data
-@param reproDataSize    The size of the repro data
-@param replaceFileSystem  Will attempt to load by unique names from this file system before
-using contents of the repro. Optional.
-@param outFileSystem    The file system that can be used to access contents
-@returns                A `SlangResult` to indicate success or failure.
-*/
-spLoadReproAsFileSystem :: (session: *SlangSession, reproData: *void, reproDataSize: u64, replaceFileSystem: *ISlangFileSystem, outFileSystem: **ISlangFileSystemExt) -> SlangResult #foreign slang;
-
-/*! @see slang::ICompileRequest::overrideDiagnosticSeverity */
-spOverrideDiagnosticSeverity :: (request: *SlangCompileRequest, messageID: SlangInt, overrideSeverity: SlangSeverity) -> void #foreign slang;
-
-/*! @see slang::ICompileRequest::getDiagnosticFlags */
-spGetDiagnosticFlags :: (request: *SlangCompileRequest) -> SlangDiagnosticFlags #foreign slang;
-
-/*! @see slang::ICompileRequest::setDiagnosticFlags */
-spSetDiagnosticFlags :: (request: *SlangCompileRequest, flags: SlangDiagnosticFlags) -> void #foreign slang;
-
-// get reflection data from a compilation request
-spGetReflection :: (request: *SlangCompileRequest) -> *SlangReflection #foreign slang;
-
-// User Attribute
-spReflectionUserAttribute_GetName :: (attrib: *SlangReflectionUserAttribute) -> *u8 #foreign slang;
-spReflectionUserAttribute_GetArgumentCount :: (attrib: *SlangReflectionUserAttribute) -> u32 #foreign slang;
-
-spReflectionUserAttribute_GetArgumentType :: (attrib: *SlangReflectionUserAttribute, index: u32) -> *SlangReflectionType #foreign slang;
-
-spReflectionUserAttribute_GetArgumentValueInt :: (attrib: *SlangReflectionUserAttribute, index: u32, rs: *s32) -> SlangResult #foreign slang;
-
-spReflectionUserAttribute_GetArgumentValueFloat :: (attrib: *SlangReflectionUserAttribute, index: u32, rs: *float) -> SlangResult #foreign slang;
-
-/** Returns the string-typed value of a user attribute argument
-The string returned is not null-terminated. The length of the string is returned via
-`outSize`. If index of out of range, or if the specified argument is not a string, the
-function will return nullptr.
-*/
-spReflectionUserAttribute_GetArgumentValueString :: (attrib: *SlangReflectionUserAttribute, index: u32, outSize: *u64) -> *u8 #foreign slang;
-
-// Type Reflection
-spReflectionType_GetKind :: (type: *SlangReflectionType) -> SlangTypeKind #foreign slang;
-spReflectionType_GetUserAttributeCount :: (type: *SlangReflectionType) -> u32 #foreign slang;
-spReflectionType_GetUserAttribute :: (type: *SlangReflectionType, index: u32) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionType_FindUserAttributeByName :: (type: *SlangReflectionType, name: *u8) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionType_applySpecializations :: (type: *SlangReflectionType, generic: *SlangReflectionGeneric) -> *SlangReflectionType #foreign slang;
-
-spReflectionType_GetFieldCount :: (type: *SlangReflectionType) -> u32 #foreign slang;
-spReflectionType_GetFieldByIndex :: (type: *SlangReflectionType, index: u32) -> *SlangReflectionVariable #foreign slang;
-
-/** Returns the number of elements in the given type.
-
-This operation is valid for vector and array types. For other types it returns zero.
-
-When invoked on an unbounded-size array it will return `SLANG_UNBOUNDED_SIZE`,
-which is defined to be `~size_t(0)`.
-
-If the size of a type cannot be statically computed, perhaps because it depends on
-a generic parameter that has not been bound to a specific value, this function returns zero.
-
-Use spReflectionType_GetSpecializedElementCount if the size is dependent on
-a link time constant
-*/
-spReflectionType_GetElementCount :: (type: *SlangReflectionType) -> u64 #foreign slang;
-
-/** The same as spReflectionType_GetElementCount except it takes into account specialization
-* information from the given reflection info
-*/
-spReflectionType_GetSpecializedElementCount :: (type: *SlangReflectionType, reflection: *SlangReflection) -> u64 #foreign slang;
-
-spReflectionType_GetElementType :: (type: *SlangReflectionType) -> *SlangReflectionType #foreign slang;
-
-spReflectionType_GetRowCount :: (type: *SlangReflectionType) -> u32 #foreign slang;
-spReflectionType_GetColumnCount :: (type: *SlangReflectionType) -> u32 #foreign slang;
-spReflectionType_GetScalarType :: (type: *SlangReflectionType) -> SlangScalarType #foreign slang;
-
-spReflectionType_GetResourceShape :: (type: *SlangReflectionType) -> SlangResourceShape #foreign slang;
-spReflectionType_GetResourceAccess :: (type: *SlangReflectionType) -> SlangResourceAccess #foreign slang;
-spReflectionType_GetResourceResultType :: (type: *SlangReflectionType) -> *SlangReflectionType #foreign slang;
-
-spReflectionType_GetName :: (type: *SlangReflectionType) -> *u8 #foreign slang;
-
-spReflectionType_GetFullName :: (type: *SlangReflectionType, outNameBlob: **ISlangBlob) -> SlangResult #foreign slang;
-spReflectionType_GetGenericContainer :: (type: *SlangReflectionType) -> *SlangReflectionGeneric #foreign slang;
-
-// Type Layout Reflection
-spReflectionTypeLayout_GetType :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionType #foreign slang;
-spReflectionTypeLayout_getKind :: (type: *SlangReflectionTypeLayout) -> SlangTypeKind #foreign slang;
-spReflectionTypeLayout_GetSize :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang;
-
-spReflectionTypeLayout_GetStride :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang;
-
-spReflectionTypeLayout_getAlignment :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> s32 #foreign slang;
-
-spReflectionTypeLayout_GetFieldCount :: (type: *SlangReflectionTypeLayout) -> u32 #foreign slang;
-spReflectionTypeLayout_GetFieldByIndex :: (type: *SlangReflectionTypeLayout, index: u32) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionTypeLayout_findFieldIndexByName :: (typeLayout: *SlangReflectionTypeLayout, nameBegin: *u8, nameEnd: *u8) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_GetExplicitCounter :: (typeLayout: *SlangReflectionTypeLayout) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionTypeLayout_GetElementStride :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang;
-
-spReflectionTypeLayout_GetElementTypeLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionTypeLayout #foreign slang;
-
-spReflectionTypeLayout_GetElementVarLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionTypeLayout_getContainerVarLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionTypeLayout_GetParameterCategory :: (type: *SlangReflectionTypeLayout) -> SlangParameterCategory #foreign slang;
-
-spReflectionTypeLayout_GetCategoryCount :: (type: *SlangReflectionTypeLayout) -> u32 #foreign slang;
-
-spReflectionTypeLayout_GetCategoryByIndex :: (type: *SlangReflectionTypeLayout, index: u32) -> SlangParameterCategory #foreign slang;
-
-spReflectionTypeLayout_GetMatrixLayoutMode :: (type: *SlangReflectionTypeLayout) -> SlangMatrixLayoutMode #foreign slang;
-
-spReflectionTypeLayout_getGenericParamIndex :: (type: *SlangReflectionTypeLayout) -> s32 #foreign slang;
-
-spReflectionTypeLayout_getPendingDataTypeLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionTypeLayout #foreign slang;
-
-spReflectionTypeLayout_getSpecializedTypePendingDataVarLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionVariableLayout #foreign slang;
-spReflectionType_getSpecializedTypeArgCount :: (type: *SlangReflectionType) -> SlangInt #foreign slang;
-spReflectionType_getSpecializedTypeArgType :: (type: *SlangReflectionType, index: SlangInt) -> *SlangReflectionType #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeCount :: (typeLayout: *SlangReflectionTypeLayout) -> SlangInt #foreign slang;
-spReflectionTypeLayout_getBindingRangeType :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangBindingType #foreign slang;
-
-spReflectionTypeLayout_isBindingRangeSpecializable :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeBindingCount :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeLeafTypeLayout :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> *SlangReflectionTypeLayout #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeLeafVariable :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> *SlangReflectionVariable #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeImageFormat :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangImageFormat #foreign slang;
-
-spReflectionTypeLayout_getFieldBindingRangeOffset :: (typeLayout: *SlangReflectionTypeLayout, fieldIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getExplicitCounterBindingRangeOffset :: (inTypeLayout: *SlangReflectionTypeLayout) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeDescriptorSetIndex :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeFirstDescriptorRangeIndex :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getBindingRangeDescriptorRangeCount :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetCount :: (typeLayout: *SlangReflectionTypeLayout) -> SlangInt #foreign slang;
-spReflectionTypeLayout_getDescriptorSetSpaceOffset :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetDescriptorRangeCount :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetDescriptorRangeIndexOffset :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetDescriptorRangeDescriptorCount :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetDescriptorRangeType :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangBindingType #foreign slang;
-
-spReflectionTypeLayout_getDescriptorSetDescriptorRangeCategory :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangParameterCategory #foreign slang;
-
-spReflectionTypeLayout_getSubObjectRangeCount :: (typeLayout: *SlangReflectionTypeLayout) -> SlangInt #foreign slang;
-spReflectionTypeLayout_getSubObjectRangeBindingRangeIndex :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getSubObjectRangeSpaceOffset :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> SlangInt #foreign slang;
-
-spReflectionTypeLayout_getSubObjectRangeOffset :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> *SlangReflectionVariableLayout #foreign slang;
-
-// Variable Reflection
-spReflectionVariable_GetName :: (var: *SlangReflectionVariable) -> *u8 #foreign slang;
-spReflectionVariable_GetType :: (var: *SlangReflectionVariable) -> *SlangReflectionType #foreign slang;
-spReflectionVariable_FindModifier :: (var: *SlangReflectionVariable, modifierID: SlangModifierID) -> *SlangReflectionModifier #foreign slang;
-
-spReflectionVariable_GetUserAttributeCount :: (var: *SlangReflectionVariable) -> u32 #foreign slang;
-spReflectionVariable_GetUserAttribute :: (var: *SlangReflectionVariable, index: u32) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionVariable_FindUserAttributeByName :: (var: *SlangReflectionVariable, globalSession: *SlangSession, name: *u8) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionVariable_HasDefaultValue :: (inVar: *SlangReflectionVariable) -> bool #foreign slang;
-
-spReflectionVariable_GetDefaultValueInt :: (inVar: *SlangReflectionVariable, rs: *s64) -> SlangResult #foreign slang;
-spReflectionVariable_GetGenericContainer :: (var: *SlangReflectionVariable) -> *SlangReflectionGeneric #foreign slang;
-
-spReflectionVariable_applySpecializations :: (var: *SlangReflectionVariable, generic: *SlangReflectionGeneric) -> *SlangReflectionVariable #foreign slang;
-
-// Variable Layout Reflection
-spReflectionVariableLayout_GetVariable :: (var: *SlangReflectionVariableLayout) -> *SlangReflectionVariable #foreign slang;
-
-spReflectionVariableLayout_GetTypeLayout :: (var: *SlangReflectionVariableLayout) -> *SlangReflectionTypeLayout #foreign slang;
-
-spReflectionVariableLayout_GetOffset :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang;
-
-spReflectionVariableLayout_GetSpace :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang;
-
-spReflectionVariableLayout_GetImageFormat :: (var: *SlangReflectionVariableLayout) -> SlangImageFormat #foreign slang;
-
-spReflectionVariableLayout_GetSemanticName :: (var: *SlangReflectionVariableLayout) -> *u8 #foreign slang;
-
-spReflectionVariableLayout_GetSemanticIndex :: (var: *SlangReflectionVariableLayout) -> u64 #foreign slang;
-
-// Function Reflection
-spReflectionFunction_asDecl :: (func: *SlangReflectionFunction) -> *SlangReflectionDecl #foreign slang;
-spReflectionFunction_GetName :: (func: *SlangReflectionFunction) -> *u8 #foreign slang;
-spReflectionFunction_FindModifier :: (var: *SlangReflectionFunction, modifierID: SlangModifierID) -> *SlangReflectionModifier #foreign slang;
-
-spReflectionFunction_GetUserAttributeCount :: (func: *SlangReflectionFunction) -> u32 #foreign slang;
-
-spReflectionFunction_GetUserAttribute :: (func: *SlangReflectionFunction, index: u32) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionFunction_FindUserAttributeByName :: (func: *SlangReflectionFunction, globalSession: *SlangSession, name: *u8) -> *SlangReflectionUserAttribute #foreign slang;
-
-spReflectionFunction_GetParameterCount :: (func: *SlangReflectionFunction) -> u32 #foreign slang;
-spReflectionFunction_GetParameter :: (func: *SlangReflectionFunction, index: u32) -> *SlangReflectionVariable #foreign slang;
-
-spReflectionFunction_GetResultType :: (func: *SlangReflectionFunction) -> *SlangReflectionType #foreign slang;
-
-spReflectionFunction_GetGenericContainer :: (func: *SlangReflectionFunction) -> *SlangReflectionGeneric #foreign slang;
-
-spReflectionFunction_applySpecializations :: (func: *SlangReflectionFunction, generic: *SlangReflectionGeneric) -> *SlangReflectionFunction #foreign slang;
-
-spReflectionFunction_specializeWithArgTypes :: (func: *SlangReflectionFunction, argTypeCount: SlangInt, argTypes: **SlangReflectionType) -> *SlangReflectionFunction #foreign slang;
-
-spReflectionFunction_isOverloaded :: (func: *SlangReflectionFunction) -> bool #foreign slang;
-spReflectionFunction_getOverloadCount :: (func: *SlangReflectionFunction) -> u32 #foreign slang;
-spReflectionFunction_getOverload :: (func: *SlangReflectionFunction, index: u32) -> *SlangReflectionFunction #foreign slang;
-
-// Abstract Decl Reflection
-spReflectionDecl_getChildrenCount :: (parentDecl: *SlangReflectionDecl) -> u32 #foreign slang;
-spReflectionDecl_getChild :: (parentDecl: *SlangReflectionDecl, index: u32) -> *SlangReflectionDecl #foreign slang;
-
-spReflectionDecl_getName :: (decl: *SlangReflectionDecl) -> *u8 #foreign slang;
-spReflectionDecl_getKind :: (decl: *SlangReflectionDecl) -> SlangDeclKind #foreign slang;
-spReflectionDecl_castToFunction :: (decl: *SlangReflectionDecl) -> *SlangReflectionFunction #foreign slang;
-spReflectionDecl_castToVariable :: (decl: *SlangReflectionDecl) -> *SlangReflectionVariable #foreign slang;
-spReflectionDecl_castToGeneric :: (decl: *SlangReflectionDecl) -> *SlangReflectionGeneric #foreign slang;
-spReflection_getTypeFromDecl :: (decl: *SlangReflectionDecl) -> *SlangReflectionType #foreign slang;
-spReflectionDecl_getParent :: (decl: *SlangReflectionDecl) -> *SlangReflectionDecl #foreign slang;
-
-// Generic Reflection
-spReflectionGeneric_asDecl :: (generic: *SlangReflectionGeneric) -> *SlangReflectionDecl #foreign slang;
-spReflectionGeneric_GetName :: (generic: *SlangReflectionGeneric) -> *u8 #foreign slang;
-spReflectionGeneric_GetTypeParameterCount :: (generic: *SlangReflectionGeneric) -> u32 #foreign slang;
-
-spReflectionGeneric_GetTypeParameter :: (generic: *SlangReflectionGeneric, index: u32) -> *SlangReflectionVariable #foreign slang;
-
-spReflectionGeneric_GetValueParameterCount :: (generic: *SlangReflectionGeneric) -> u32 #foreign slang;
-
-spReflectionGeneric_GetValueParameter :: (generic: *SlangReflectionGeneric, index: u32) -> *SlangReflectionVariable #foreign slang;
-
-spReflectionGeneric_GetTypeParameterConstraintCount :: (generic: *SlangReflectionGeneric, typeParam: *SlangReflectionVariable) -> u32 #foreign slang;
-
-spReflectionGeneric_GetTypeParameterConstraintType :: (generic: *SlangReflectionGeneric, typeParam: *SlangReflectionVariable, index: u32) -> *SlangReflectionType #foreign slang;
-
-spReflectionGeneric_GetInnerKind :: (generic: *SlangReflectionGeneric) -> SlangDeclKind #foreign slang;
-spReflectionGeneric_GetInnerDecl :: (generic: *SlangReflectionGeneric) -> *SlangReflectionDecl #foreign slang;
-
-spReflectionGeneric_GetOuterGenericContainer :: (generic: *SlangReflectionGeneric) -> *SlangReflectionGeneric #foreign slang;
-
-spReflectionGeneric_GetConcreteType :: (generic: *SlangReflectionGeneric, typeParam: *SlangReflectionVariable) -> *SlangReflectionType #foreign slang;
-
-spReflectionGeneric_GetConcreteIntVal :: (generic: *SlangReflectionGeneric, valueParam: *SlangReflectionVariable) -> s64 #foreign slang;
-
-spReflectionGeneric_applySpecializations :: (currGeneric: *SlangReflectionGeneric, generic: *SlangReflectionGeneric) -> *SlangReflectionGeneric #foreign slang;
-
-/** Get the stage that a variable belongs to (if any).
-
-A variable "belongs" to a specific stage when it is a varying input/output
-parameter either defined as part of the parameter list for an entry
-point *or* at the global scope of a stage-specific GLSL code file (e.g.,
-an `in` parameter in a GLSL `.vs` file belongs to the vertex stage).
-*/
-spReflectionVariableLayout_getStage :: (var: *SlangReflectionVariableLayout) -> SlangStage #foreign slang;
-
-spReflectionVariableLayout_getPendingDataLayout :: (var: *SlangReflectionVariableLayout) -> *SlangReflectionVariableLayout #foreign slang;
-
-// Shader Parameter Reflection
-spReflectionParameter_GetBindingIndex :: (parameter: *SlangReflectionParameter) -> u32 #foreign slang;
-spReflectionParameter_GetBindingSpace :: (parameter: *SlangReflectionParameter) -> u32 #foreign slang;
-
-spIsParameterLocationUsed :: (request: *SlangCompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #foreign slang;
-
-// Entry Point Reflection
-spReflectionEntryPoint_getName :: (entryPoint: *SlangReflectionEntryPoint) -> *u8 #foreign slang;
-
-spReflectionEntryPoint_getNameOverride :: (entryPoint: *SlangReflectionEntryPoint) -> *u8 #foreign slang;
-
-spReflectionEntryPoint_getFunction :: (entryPoint: *SlangReflectionEntryPoint) -> *SlangReflectionFunction #foreign slang;
-
-spReflectionEntryPoint_getParameterCount :: (entryPoint: *SlangReflectionEntryPoint) -> u32 #foreign slang;
-
-spReflectionEntryPoint_getParameterByIndex :: (entryPoint: *SlangReflectionEntryPoint, index: u32) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionEntryPoint_getStage :: (entryPoint: *SlangReflectionEntryPoint) -> SlangStage #foreign slang;
-
-spReflectionEntryPoint_getComputeThreadGroupSize :: (entryPoint: *SlangReflectionEntryPoint, axisCount: SlangUInt, outSizeAlongAxis: *SlangUInt) -> void #foreign slang;
-
-spReflectionEntryPoint_getComputeWaveSize :: (entryPoint: *SlangReflectionEntryPoint, outWaveSize: *SlangUInt) -> void #foreign slang;
-
-spReflectionEntryPoint_usesAnySampleRateInput :: (entryPoint: *SlangReflectionEntryPoint) -> s32 #foreign slang;
-
-spReflectionEntryPoint_getVarLayout :: (entryPoint: *SlangReflectionEntryPoint) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionEntryPoint_getResultVarLayout :: (entryPoint: *SlangReflectionEntryPoint) -> *SlangReflectionVariableLayout #foreign slang;
-
-spReflectionEntryPoint_hasDefaultConstantBuffer :: (entryPoint: *SlangReflectionEntryPoint) -> s32 #foreign slang;
-
-// SlangReflectionTypeParameter
-spReflectionTypeParameter_GetName :: (typeParam: *SlangReflectionTypeParameter) -> *u8 #foreign slang;
-
-spReflectionTypeParameter_GetIndex :: (typeParam: *SlangReflectionTypeParameter) -> u32 #foreign slang;
-spReflectionTypeParameter_GetConstraintCount :: (typeParam: *SlangReflectionTypeParameter) -> u32 #foreign slang;
-
-spReflectionTypeParameter_GetConstraintByIndex :: (typeParam: *SlangReflectionTypeParameter, index: u32) -> *SlangReflectionType #foreign slang;
-
-// Shader Reflection
-spReflection_ToJson :: (reflection: *SlangReflection, request: *SlangCompileRequest, outBlob: **ISlangBlob) -> SlangResult #foreign slang;
-
-spReflection_GetParameterCount :: (reflection: *SlangReflection) -> u32 #foreign slang;
-spReflection_GetParameterByIndex :: (reflection: *SlangReflection, index: u32) -> *SlangReflectionParameter #foreign slang;
-
-spReflection_GetTypeParameterCount :: (reflection: *SlangReflection) -> u32 #foreign slang;
-spReflection_GetTypeParameterByIndex :: (reflection: *SlangReflection, index: u32) -> *SlangReflectionTypeParameter #foreign slang;
-
-spReflection_FindTypeParameter :: (reflection: *SlangReflection, name: *u8) -> *SlangReflectionTypeParameter #foreign slang;
-
-spReflection_FindTypeByName :: (reflection: *SlangReflection, name: *u8) -> *SlangReflectionType #foreign slang;
-
-spReflection_GetTypeLayout :: (reflection: *SlangReflection, reflectionType: *SlangReflectionType, rules: SlangLayoutRules) -> *SlangReflectionTypeLayout #foreign slang;
-
-spReflection_FindFunctionByName :: (reflection: *SlangReflection, name: *u8) -> *SlangReflectionFunction #foreign slang;
-
-spReflection_FindFunctionByNameInType :: (reflection: *SlangReflection, reflType: *SlangReflectionType, name: *u8) -> *SlangReflectionFunction #foreign slang;
-
-spReflection_FindVarByNameInType :: (reflection: *SlangReflection, reflType: *SlangReflectionType, name: *u8) -> *SlangReflectionVariable #foreign slang;
-
-spReflection_getEntryPointCount :: (reflection: *SlangReflection) -> SlangUInt #foreign slang;
-spReflection_getEntryPointByIndex :: (reflection: *SlangReflection, index: SlangUInt) -> *SlangReflectionEntryPoint #foreign slang;
-
-spReflection_findEntryPointByName :: (reflection: *SlangReflection, name: *u8) -> *SlangReflectionEntryPoint #foreign slang;
-
-spReflection_getGlobalConstantBufferBinding :: (reflection: *SlangReflection) -> SlangUInt #foreign slang;
-spReflection_getGlobalConstantBufferSize :: (reflection: *SlangReflection) -> u64 #foreign slang;
-
-spReflection_specializeType :: (reflection: *SlangReflection, type: *SlangReflectionType, specializationArgCount: SlangInt, specializationArgs: **SlangReflectionType, outDiagnostics: **ISlangBlob) -> *SlangReflectionType #foreign slang;
-
-spReflection_specializeGeneric :: (inProgramLayout: *SlangReflection, generic: *SlangReflectionGeneric, argCount: SlangInt, argTypes: *SlangReflectionGenericArgType, args: *SlangReflectionGenericArg, outDiagnostics: **ISlangBlob) -> *SlangReflectionGeneric #foreign slang;
-
-spReflection_isSubType :: (reflection: *SlangReflection, subType: *SlangReflectionType, superType: *SlangReflectionType) -> bool #foreign slang;
-
-/// Get the number of hashed strings
-spReflection_getHashedStringCount :: (reflection: *SlangReflection) -> SlangUInt #foreign slang;
-
-/// Get a hashed string. The number of chars is written in outCount.
-/// The count does *NOT* including terminating 0. The returned string will be 0 terminated.
-spReflection_getHashedString :: (reflection: *SlangReflection, index: SlangUInt, outCount: *u64) -> *u8 #foreign slang;
-
-/// Compute a string hash.
-/// Count should *NOT* include terminating zero.
-spComputeStringHash :: (chars: *u8, count: u64) -> SlangUInt32 #foreign slang;
-
-/// Get a type layout representing reflection information for the global-scope parameters.
-spReflection_getGlobalParamsTypeLayout :: (reflection: *SlangReflection) -> *SlangReflectionTypeLayout #foreign slang;
-
-/// Get a variable layout representing reflection information for the global-scope parameters.
-spReflection_getGlobalParamsVarLayout :: (reflection: *SlangReflection) -> *SlangReflectionVariableLayout #foreign slang;
-
-spGetTranslationUnitSource :: (request: *SlangCompileRequest, translationUnitIndex: s32) -> *u8 #foreign slang;
-
-spReflection_GetSession :: (reflection: *SlangReflection) -> *ISession #foreign slang "?spReflection_GetSession@@YAPEAUISession@slang@@PEAUSlangProgramLayout@@@Z";
-
-/** @see slang::ICompileRequest::getProgram
-*/
-spCompileRequest_getProgram :: (request: *SlangCompileRequest, outProgram: **IComponentType) -> SlangResult #foreign slang;
-
-/** @see slang::ICompileRequest::getProgramWithEntryPoints
-*/
-spCompileRequest_getProgramWithEntryPoints :: (request: *SlangCompileRequest, outProgram: **IComponentType) -> SlangResult #foreign slang;
-
-/** @see slang::ICompileRequest::getEntryPoint
-*/
-spCompileRequest_getEntryPoint :: (request: *SlangCompileRequest, entryPointIndex: SlangInt, outEntryPoint: **IComponentType) -> SlangResult #foreign slang;
-
-/** @see slang::ICompileRequest::getModule
-*/
-spCompileRequest_getModule :: (request: *SlangCompileRequest, translationUnitIndex: SlangInt, outModule: **IModule) -> SlangResult #foreign slang;
-
-/** @see slang::ICompileRequest::getSession
-*/
-spCompileRequest_getSession :: (request: *SlangCompileRequest, outSession: **ISession) -> SlangResult #foreign slang;
-
 SlangLanguageVersion :: enum s32 {
     LANGUAGE_VERSION_UNKNOWN :: 0;
     LANGUAGE_VERSION_LEGACY  :: 2018;
@@ -3643,54 +3004,6 @@ SlangGlobalSessionDesc :: struct {
     /// Reserved for future use.
     reserved:           [16] u32;
 }
-
-/* Create a global session, with the built-in core module.
-
-@param apiVersion Pass in SLANG_API_VERSION
-@param outGlobalSession (out)The created global session.
-*/
-slang_createGlobalSession :: (apiVersion: SlangInt, outGlobalSession: **IGlobalSession) -> SlangResult #foreign slang;
-
-/* Create a global session, with the built-in core module.
-
-@param desc Description of the global session.
-@param outGlobalSession (out)The created global session.
-*/
-slang_createGlobalSession2 :: (desc: *SlangGlobalSessionDesc, outGlobalSession: **IGlobalSession) -> SlangResult #foreign slang;
-
-/* Create a global session, but do not set up the core module. The core module can
-then be loaded via loadCoreModule or compileCoreModule
-
-@param apiVersion Pass in SLANG_API_VERSION
-@param outGlobalSession (out)The created global session that doesn't have a core module setup.
-
-NOTE! API is experimental and not ready for production code
-*/
-slang_createGlobalSessionWithoutCoreModule :: (apiVersion: SlangInt, outGlobalSession: **IGlobalSession) -> SlangResult #foreign slang;
-
-/* Returns a blob that contains the serialized core module.
-Returns nullptr if there isn't an embedded core module.
-
-NOTE! API is experimental and not ready for production code
-*/
-slang_getEmbeddedCoreModule :: () -> *ISlangBlob #foreign slang "?slang_getEmbeddedCoreModule@@YAPEAUISlangBlob@@XZ";
-
-/* Cleanup all global allocations used by Slang, to prevent memory leak detectors from
-reporting them as leaks. This function should only be called after all Slang objects
-have been released. No other Slang functions such as `createGlobalSession`
-should be called after this function.
-*/
-slang_shutdown :: () -> void #foreign slang;
-
-/* Return the last signaled internal error message.
-*/
-slang_getLastInternalErrorMessage :: () -> *u8 #foreign slang;
-
-/// Create a byte code runner that can execute Slang byte code.
-slang_createByteCodeRunner :: (desc: *ByteCodeRunnerDesc, outByteCodeRunner: **IByteCodeRunner) -> SlangResult #foreign slang;
-
-/// Disassemble a Slang byte code blob into human-readable text.
-slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -> SlangResult #foreign slang;
 
 #scope_file
 
