@@ -21,7 +21,7 @@ generate_bindings :: () -> bool {
         }
 
         if OS == {
-            case .WINDOWS; array_add(*libnames, "slang", "slang-compiler");
+            case .WINDOWS; array_add(*libnames, "slang-compiler");
             case .LINUX; array_add(*libnames, "libslang");
         }
 
