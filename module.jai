@@ -7,7 +7,7 @@
 }
 
 #if OS == .WINDOWS {
-    slang :: #library "lib/win/slang";
+    slang_compiler :: #library,no_dll "lib/win/slang-compiler";
 } else #if OS == .LINUX {
     libslang :: #library "lib/linux/libslang";
 }
