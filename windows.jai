@@ -824,8 +824,8 @@ CompilerOptionEntry :: struct {
 @brief A request for one or more compilation actions to be performed.
 */
 ICompileRequest :: struct {
-    vtable: *ICompileRequest_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ICompileRequest_VTable; // Overlay parent's vtable with ICompileRequest’s vtable
 }
 ICompileRequest_VTable :: struct #type_info_none {
     using vtable:                                 ISlangUnknown_VTable;
@@ -1085,20 +1085,14 @@ GenericArgReflection :: union {
 }
 
 Attribute :: struct {
-    using attribute__raw:   Attribute__RAW;
     __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// Attribute without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Attribute
-Attribute__RAW :: struct {}
 
 UserAttribute :: Attribute;
 
 TypeReflection :: struct {
-    using typereflection__raw: TypeReflection__RAW;
-    __empty_struct_padding:    u8; // C++ makes empty structs have length 1
-}
-// TypeReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeReflection
-TypeReflection__RAW :: struct {
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+
     Kind :: enum s32 {
         None                 :: 0;
         Struct               :: 1;
@@ -1208,18 +1202,12 @@ BindingType :: enum SlangBindingTypeIntegral {
 }
 
 TypeLayoutReflection :: struct {
-    using typelayoutreflection__raw: TypeLayoutReflection__RAW;
-    __empty_struct_padding:          u8; // C++ makes empty structs have length 1
-}
-// TypeLayoutReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeLayoutReflection
-TypeLayoutReflection__RAW :: struct {}
-
-Modifier :: struct {
-    using modifier__raw:    Modifier__RAW;
     __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// Modifier without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from Modifier
-Modifier__RAW :: struct {
+
+Modifier :: struct {
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+
     ID :: enum SlangModifierIDIntegral {
         Shared         :: 0;
         NoDiff         :: 1;
@@ -1236,48 +1224,30 @@ Modifier__RAW :: struct {
 }
 
 VariableReflection :: struct {
-    using variablereflection__raw: VariableReflection__RAW;
-    __empty_struct_padding:        u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// VariableReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from VariableReflection
-VariableReflection__RAW :: struct {}
 
 VariableLayoutReflection :: struct {
-    using variablelayoutreflection__raw: VariableLayoutReflection__RAW;
-    __empty_struct_padding:              u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// VariableLayoutReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from VariableLayoutReflection
-VariableLayoutReflection__RAW :: struct {}
 
 FunctionReflection :: struct {
-    using functionreflection__raw: FunctionReflection__RAW;
-    __empty_struct_padding:        u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// FunctionReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from FunctionReflection
-FunctionReflection__RAW :: struct {}
 
 GenericReflection :: struct {
-    using genericreflection__raw: GenericReflection__RAW;
-    __empty_struct_padding:       u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// GenericReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from GenericReflection
-GenericReflection__RAW :: struct {}
 
 EntryPointReflection :: struct {
-    using entrypointreflection__raw: EntryPointReflection__RAW;
-    __empty_struct_padding:          u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// EntryPointReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from EntryPointReflection
-EntryPointReflection__RAW :: struct {}
 
 EntryPointLayout :: EntryPointReflection;
 
 TypeParameterReflection :: struct {
-    using typeparameterreflection__raw: TypeParameterReflection__RAW;
-    __empty_struct_padding:             u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// TypeParameterReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from TypeParameterReflection
-TypeParameterReflection__RAW :: struct {}
 
 LayoutRules :: enum SlangLayoutRulesIntegral {
     Default                  :: 0;
@@ -1288,18 +1258,12 @@ ProgramLayout :: ShaderReflection;
 GenericArgType :: SlangReflectionGenericArgType;
 
 ShaderReflection :: struct {
-    using shaderreflection__raw: ShaderReflection__RAW;
-    __empty_struct_padding:      u8; // C++ makes empty structs have length 1
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
 }
-// ShaderReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from ShaderReflection
-ShaderReflection__RAW :: struct {}
 
 DeclReflection :: struct {
-    using declreflection__raw: DeclReflection__RAW;
-    __empty_struct_padding:    u8; // C++ makes empty structs have length 1
-}
-// DeclReflection without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from DeclReflection
-DeclReflection__RAW :: struct {
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+
     Kind :: enum s32 {
         Unsupported :: 0;
         Struct      :: 1;
@@ -1335,11 +1299,8 @@ DeclReflection__RAW :: struct {
 
 CompileCoreModuleFlags :: u32;
 CompileCoreModuleFlag :: struct {
-    using compilecoremoduleflag__raw: CompileCoreModuleFlag__RAW;
-    __empty_struct_padding:           u8; // C++ makes empty structs have length 1
-}
-// CompileCoreModuleFlag without empty struct padding. Needed to generate a C++-equivalent struct layout when "inheriting" from CompileCoreModuleFlag
-CompileCoreModuleFlag__RAW :: struct {
+    __empty_struct_padding: u8; // C++ makes empty structs have length 1
+
     Enum :: enum CompileCoreModuleFlags {
         WriteDocumentation :: 1;
     }
@@ -1363,8 +1324,8 @@ a single global session should only be used from a single thread at
 a time.
 */
 IGlobalSession :: struct {
-    vtable: *IGlobalSession_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *IGlobalSession_VTable; // Overlay parent's vtable with IGlobalSession’s vtable
 }
 IGlobalSession_VTable :: struct #type_info_none {
     using vtable:                       ISlangUnknown_VTable;
@@ -1586,8 +1547,8 @@ Applications wishing to control the memory usage for compiled
 and loaded code should use multiple sessions.
 */
 ISession :: struct {
-    vtable: *ISession_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISession_VTable; // Overlay parent's vtable with ISession’s vtable
 }
 ISession_VTable :: struct #type_info_none {
     using vtable:                          ISlangUnknown_VTable;
@@ -1655,8 +1616,8 @@ vtable :: (obj: *ISession) -> *ISession_VTable { return obj.vtable; }
 
 
 IMetadata :: struct {
-    vtable: *IMetadata_VTable;
-    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+    #as using,except(vtable) islangcastable: ISlangCastable;
+    #overlay (islangcastable) vtable: *IMetadata_VTable; // Overlay parent's vtable with IMetadata’s vtable
 }
 IMetadata_VTable :: struct #type_info_none {
     using,except(vtable) vtable:                  ISlangCastable_VTable;
@@ -1675,8 +1636,8 @@ This is needed for features such as separate debug compilation which
 output both base and debug spirv.
 */
 ICompileResult :: struct {
-    vtable: *ICompileResult_VTable;
-    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+    #as using,except(vtable) islangcastable: ISlangCastable;
+    #overlay (islangcastable) vtable: *ICompileResult_VTable; // Overlay parent's vtable with ICompileResult’s vtable
 }
 ICompileResult_VTable :: struct #type_info_none {
     using,except(vtable) vtable:       ISlangCastable_VTable;
@@ -1753,8 +1714,8 @@ offsets/bindings to the shader parameters it contains.
 
 */
 IComponentType :: struct {
-    vtable: *IComponentType_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *IComponentType_VTable; // Overlay parent's vtable with IComponentType’s vtable
 }
 IComponentType_VTable :: struct #type_info_none {
     using vtable:                ISlangUnknown_VTable;
@@ -1805,8 +1766,8 @@ vtable :: (obj: *IComponentType) -> *IComponentType_VTable { return obj.vtable; 
 
 
 IEntryPoint :: struct {
-    vtable: *IEntryPoint_VTable;
-    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
+    #as using,except(vtable) icomponenttype: IComponentType;
+    #overlay (icomponenttype) vtable: *IEntryPoint_VTable; // Overlay parent's vtable with IEntryPoint’s vtable
 }
 IEntryPoint_VTable :: struct #type_info_none {
     using,except(vtable) vtable:                IComponentType_VTable;
@@ -1818,8 +1779,7 @@ vtable :: (obj: *IEntryPoint) -> *IEntryPoint_VTable { return obj.vtable; }
 
 
 ITypeConformance :: struct {
-    vtable: *IComponentType_VTable;
-    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
+    #as using icomponenttype: IComponentType;
 }
 
 /** IComponentType2 is a component type used for getting separate debug data.
@@ -1832,8 +1792,8 @@ are used to get the base and debug spirv, and metadata containing the
 debug build identifier.
 */
 IComponentType2 :: struct {
-    vtable: *IComponentType2_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *IComponentType2_VTable; // Overlay parent's vtable with IComponentType2’s vtable
 }
 IComponentType2_VTable :: struct #type_info_none {
     using vtable:               ISlangUnknown_VTable;
@@ -1861,8 +1821,8 @@ same session (`ISession`).
 A module establishes a namespace for looking up types, functions, etc.
 */
 IModule :: struct {
-    vtable: *IModule_VTable;
-    #place vtable; #as icomponenttype: IComponentType; // Support cast to IComponentType
+    #as using,except(vtable) icomponenttype: IComponentType;
+    #overlay (icomponenttype) vtable: *IModule_VTable; // Overlay parent's vtable with IModule’s vtable
 }
 IModule_VTable :: struct #type_info_none {
     using,except(vtable) vtable:                    IComponentType_VTable;
@@ -1911,8 +1871,8 @@ vtable :: (obj: *IModule) -> *IModule_VTable { return obj.vtable; }
 
 /* Experimental interface for doing target precompilation of slang modules */
 IModulePrecompileService_Experimental :: struct {
-    vtable: *IModulePrecompileService_Experimental_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *IModulePrecompileService_Experimental_VTable; // Overlay parent's vtable with IModulePrecompileService_Experimental’s vtable
 }
 IModulePrecompileService_Experimental_VTable :: struct #type_info_none {
     using vtable:             ISlangUnknown_VTable;
@@ -1996,8 +1956,8 @@ ByteCodeRunnerDesc :: struct {
 
 /// Represents a byte code runner that can execute Slang byte code.
 IByteCodeRunner :: struct {
-    vtable: *IByteCodeRunner_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *IByteCodeRunner_VTable; // Overlay parent's vtable with IByteCodeRunner’s vtable
 }
 IByteCodeRunner_VTable :: struct #type_info_none {
     using vtable:              ISlangUnknown_VTable;
@@ -2119,8 +2079,8 @@ vtable :: (obj: *ISlangUnknown) -> *ISlangUnknown_VTable { return obj.vtable; }
 /* An interface to provide a mechanism to cast, that doesn't require ref counting
 and doesn't have to return a pointer to a ISlangUnknown derived class */
 ISlangCastable :: struct {
-    vtable: *ISlangCastable_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangCastable_VTable; // Overlay parent's vtable with ISlangCastable’s vtable
 }
 ISlangCastable_VTable :: struct #type_info_none {
     using vtable: ISlangUnknown_VTable;
@@ -2132,8 +2092,8 @@ vtable :: (obj: *ISlangCastable) -> *ISlangCastable_VTable { return obj.vtable; 
 
 
 ISlangClonable :: struct {
-    vtable: *ISlangClonable_VTable;
-    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+    #as using,except(vtable) islangcastable: ISlangCastable;
+    #overlay (islangcastable) vtable: *ISlangClonable_VTable; // Overlay parent's vtable with ISlangClonable’s vtable
 }
 ISlangClonable_VTable :: struct #type_info_none {
     using,except(vtable) vtable: ISlangCastable_VTable;
@@ -2149,8 +2109,8 @@ vtable :: (obj: *ISlangClonable) -> *ISlangClonable_VTable { return obj.vtable; 
 This interface definition is compatible with the `ID3DBlob` and `ID3D10Blob` interfaces.
 */
 ISlangBlob :: struct {
-    vtable: *ISlangBlob_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangBlob_VTable; // Overlay parent's vtable with ISlangBlob’s vtable
 }
 ISlangBlob_VTable :: struct #type_info_none {
     using vtable:     ISlangUnknown_VTable;
@@ -2181,8 +2141,8 @@ the caller of any method that returns a ISlangBlob to release the blob when it i
 longer used (using 'release').
 */
 ISlangFileSystem :: struct {
-    vtable: *ISlangFileSystem_VTable;
-    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+    #as using,except(vtable) islangcastable: ISlangCastable;
+    #overlay (islangcastable) vtable: *ISlangFileSystem_VTable; // Overlay parent's vtable with ISlangFileSystem’s vtable
 }
 ISlangFileSystem_VTable :: struct #type_info_none {
     using,except(vtable) vtable:   ISlangCastable_VTable;
@@ -2199,8 +2159,8 @@ SlangFuncPtr :: #type () -> void #c_call;
 (DEPRECATED) ISlangSharedLibrary
 */
 ISlangSharedLibrary_Dep1 :: struct {
-    vtable: *ISlangSharedLibrary_Dep1_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangSharedLibrary_Dep1_VTable; // Overlay parent's vtable with ISlangSharedLibrary_Dep1’s vtable
 }
 ISlangSharedLibrary_Dep1_VTable :: struct #type_info_none {
     using vtable:            ISlangUnknown_VTable;
@@ -2215,8 +2175,8 @@ vtable :: (obj: *ISlangSharedLibrary_Dep1) -> *ISlangSharedLibrary_Dep1_VTable {
 does not have to implement the library as a shared library
 */
 ISlangSharedLibrary :: struct {
-    vtable: *ISlangSharedLibrary_VTable;
-    #place vtable; #as islangcastable: ISlangCastable; // Support cast to ISlangCastable
+    #as using,except(vtable) islangcastable: ISlangCastable;
+    #overlay (islangcastable) vtable: *ISlangSharedLibrary_VTable; // Overlay parent's vtable with ISlangSharedLibrary’s vtable
 }
 ISlangSharedLibrary_VTable :: struct #type_info_none {
     using,except(vtable) vtable:                  ISlangCastable_VTable;
@@ -2228,8 +2188,8 @@ vtable :: (obj: *ISlangSharedLibrary) -> *ISlangSharedLibrary_VTable { return ob
 
 
 ISlangSharedLibraryLoader :: struct {
-    vtable: *ISlangSharedLibraryLoader_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangSharedLibraryLoader_VTable; // Overlay parent's vtable with ISlangSharedLibraryLoader’s vtable
 }
 ISlangSharedLibraryLoader_VTable :: struct #type_info_none {
     using vtable:      ISlangUnknown_VTable;
@@ -2284,8 +2244,8 @@ All paths as input char*, or output as ISlangBlobs are always encoded as UTF-8 s
 Blobs that contain strings are always zero terminated.
 */
 ISlangFileSystemExt :: struct {
-    vtable: *ISlangFileSystemExt_VTable;
-    #place vtable; #as islangfilesystem: ISlangFileSystem; // Support cast to ISlangFileSystem
+    #as using,except(vtable) islangfilesystem: ISlangFileSystem;
+    #overlay (islangfilesystem) vtable: *ISlangFileSystemExt_VTable; // Overlay parent's vtable with ISlangFileSystemExt’s vtable
 }
 ISlangFileSystemExt_VTable :: struct #type_info_none {
     using,except(vtable) vtable:                ISlangFileSystem_VTable;
@@ -2315,8 +2275,8 @@ vtable :: (obj: *ISlangFileSystemExt) -> *ISlangFileSystemExt_VTable { return ob
 
 
 ISlangMutableFileSystem :: struct {
-    vtable: *ISlangMutableFileSystem_VTable;
-    #place vtable; #as islangfilesystemext: ISlangFileSystemExt; // Support cast to ISlangFileSystemExt
+    #as using,except(vtable) islangfilesystemext: ISlangFileSystemExt;
+    #overlay (islangfilesystemext) vtable: *ISlangMutableFileSystem_VTable; // Overlay parent's vtable with ISlangMutableFileSystem’s vtable
 }
 ISlangMutableFileSystem_VTable :: struct #type_info_none {
     using,except(vtable) vtable:          ISlangFileSystemExt_VTable;
@@ -2362,8 +2322,8 @@ SlangWriterMode :: enum SlangWriterModeIntegral {
 /** A stream typically of text, used for outputting diagnostic as well as other information.
 */
 ISlangWriter :: struct {
-    vtable: *ISlangWriter_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangWriter_VTable; // Overlay parent's vtable with ISlangWriter’s vtable
 }
 ISlangWriter_VTable :: struct #type_info_none {
     using vtable:      ISlangUnknown_VTable;
@@ -2390,8 +2350,8 @@ vtable :: (obj: *ISlangWriter) -> *ISlangWriter_VTable { return obj.vtable; }
 
 
 ISlangProfiler :: struct {
-    vtable: *ISlangProfiler_VTable;
-    #place vtable; #as islangunknown: ISlangUnknown; // Support cast to ISlangUnknown
+    #as using,except(vtable) islangunknown: ISlangUnknown;
+    #overlay (islangunknown) vtable: *ISlangProfiler_VTable; // Overlay parent's vtable with ISlangProfiler’s vtable
 }
 ISlangProfiler_VTable :: struct #type_info_none {
     using vtable:            ISlangUnknown_VTable;
@@ -3797,7 +3757,17 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
         assert(size_of(CompilerOptionEntry) == 40, "CompilerOptionEntry has size % instead of 40", size_of(CompilerOptionEntry));
     }
 
-    assert(size_of(ICompileRequest) == 8, "ICompileRequest has size % instead of 8", size_of(ICompileRequest));
+    {
+        info := type_info(ICompileRequest);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ICompileRequest.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ICompileRequest.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ICompileRequest) == 8, "ICompileRequest has size % instead of 8", size_of(ICompileRequest));
+    }
 
     {
         info := type_info(GenericArgReflection);
@@ -3876,7 +3846,17 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
 
     assert(size_of(CompileCoreModuleFlag) == 1, "CompileCoreModuleFlag has size % instead of 1", size_of(CompileCoreModuleFlag));
 
-    assert(size_of(IGlobalSession) == 8, "IGlobalSession has size % instead of 8", size_of(IGlobalSession));
+    {
+        info := type_info(IGlobalSession);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "IGlobalSession.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IGlobalSession.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IGlobalSession) == 8, "IGlobalSession has size % instead of 8", size_of(IGlobalSession));
+    }
 
     {
         info := type_info(TargetDesc);
@@ -3983,23 +3963,113 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
         assert(size_of(SessionDesc) == 96, "SessionDesc has size % instead of 96", size_of(SessionDesc));
     }
 
-    assert(size_of(ISession) == 8, "ISession has size % instead of 8", size_of(ISession));
+    {
+        info := type_info(ISession);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISession.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISession.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISession) == 8, "ISession has size % instead of 8", size_of(ISession));
+    }
 
-    assert(size_of(IMetadata) == 8, "IMetadata has size % instead of 8", size_of(IMetadata));
+    {
+        info := type_info(IMetadata);
+        for info.members {
+            if it.name == {
+                case "islangcastable";
+                    assert(it.offset_in_bytes == 0, "IMetadata.islangcastable has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IMetadata.islangcastable has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IMetadata) == 8, "IMetadata has size % instead of 8", size_of(IMetadata));
+    }
 
-    assert(size_of(ICompileResult) == 8, "ICompileResult has size % instead of 8", size_of(ICompileResult));
+    {
+        info := type_info(ICompileResult);
+        for info.members {
+            if it.name == {
+                case "islangcastable";
+                    assert(it.offset_in_bytes == 0, "ICompileResult.islangcastable has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ICompileResult.islangcastable has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ICompileResult) == 8, "ICompileResult has size % instead of 8", size_of(ICompileResult));
+    }
 
-    assert(size_of(IComponentType) == 8, "IComponentType has size % instead of 8", size_of(IComponentType));
+    {
+        info := type_info(IComponentType);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "IComponentType.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IComponentType.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IComponentType) == 8, "IComponentType has size % instead of 8", size_of(IComponentType));
+    }
 
-    assert(size_of(IEntryPoint) == 8, "IEntryPoint has size % instead of 8", size_of(IEntryPoint));
+    {
+        info := type_info(IEntryPoint);
+        for info.members {
+            if it.name == {
+                case "icomponenttype";
+                    assert(it.offset_in_bytes == 0, "IEntryPoint.icomponenttype has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IEntryPoint.icomponenttype has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IEntryPoint) == 8, "IEntryPoint has size % instead of 8", size_of(IEntryPoint));
+    }
 
-    assert(size_of(ITypeConformance) == 8, "ITypeConformance has size % instead of 8", size_of(ITypeConformance));
+    {
+        info := type_info(ITypeConformance);
+        for info.members {
+            if it.name == {
+                case "icomponenttype";
+                    assert(it.offset_in_bytes == 0, "ITypeConformance.icomponenttype has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ITypeConformance.icomponenttype has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ITypeConformance) == 8, "ITypeConformance has size % instead of 8", size_of(ITypeConformance));
+    }
 
-    assert(size_of(IComponentType2) == 8, "IComponentType2 has size % instead of 8", size_of(IComponentType2));
+    {
+        info := type_info(IComponentType2);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "IComponentType2.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IComponentType2.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IComponentType2) == 8, "IComponentType2 has size % instead of 8", size_of(IComponentType2));
+    }
 
-    assert(size_of(IModule) == 8, "IModule has size % instead of 8", size_of(IModule));
+    {
+        info := type_info(IModule);
+        for info.members {
+            if it.name == {
+                case "icomponenttype";
+                    assert(it.offset_in_bytes == 0, "IModule.icomponenttype has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IModule.icomponenttype has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IModule) == 8, "IModule has size % instead of 8", size_of(IModule));
+    }
 
-    assert(size_of(IModulePrecompileService_Experimental) == 8, "IModulePrecompileService_Experimental has size % instead of 8", size_of(IModulePrecompileService_Experimental));
+    {
+        info := type_info(IModulePrecompileService_Experimental);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "IModulePrecompileService_Experimental.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IModulePrecompileService_Experimental.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IModulePrecompileService_Experimental) == 8, "IModulePrecompileService_Experimental has size % instead of 8", size_of(IModulePrecompileService_Experimental));
+    }
 
     {
         info := type_info(SpecializationArg);
@@ -4076,7 +4146,17 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
         assert(size_of(ByteCodeRunnerDesc) == 8, "ByteCodeRunnerDesc has size % instead of 8", size_of(ByteCodeRunnerDesc));
     }
 
-    assert(size_of(IByteCodeRunner) == 8, "IByteCodeRunner has size % instead of 8", size_of(IByteCodeRunner));
+    {
+        info := type_info(IByteCodeRunner);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "IByteCodeRunner.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "IByteCodeRunner.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(IByteCodeRunner) == 8, "IByteCodeRunner has size % instead of 8", size_of(IByteCodeRunner));
+    }
 
     {
         info := type_info(SlangUUID);
@@ -4101,11 +4181,41 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
 
     assert(size_of(ISlangUnknown) == 8, "ISlangUnknown has size % instead of 8", size_of(ISlangUnknown));
 
-    assert(size_of(ISlangCastable) == 8, "ISlangCastable has size % instead of 8", size_of(ISlangCastable));
+    {
+        info := type_info(ISlangCastable);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangCastable.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangCastable.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangCastable) == 8, "ISlangCastable has size % instead of 8", size_of(ISlangCastable));
+    }
 
-    assert(size_of(ISlangClonable) == 8, "ISlangClonable has size % instead of 8", size_of(ISlangClonable));
+    {
+        info := type_info(ISlangClonable);
+        for info.members {
+            if it.name == {
+                case "islangcastable";
+                    assert(it.offset_in_bytes == 0, "ISlangClonable.islangcastable has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangClonable.islangcastable has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangClonable) == 8, "ISlangClonable has size % instead of 8", size_of(ISlangClonable));
+    }
 
-    assert(size_of(ISlangBlob) == 8, "ISlangBlob has size % instead of 8", size_of(ISlangBlob));
+    {
+        info := type_info(ISlangBlob);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangBlob.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangBlob.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangBlob) == 8, "ISlangBlob has size % instead of 8", size_of(ISlangBlob));
+    }
 
     {
         info := type_info(SlangTerminatedChars);
@@ -4119,21 +4229,101 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
         assert(size_of(SlangTerminatedChars) == 1, "SlangTerminatedChars has size % instead of 1", size_of(SlangTerminatedChars));
     }
 
-    assert(size_of(ISlangFileSystem) == 8, "ISlangFileSystem has size % instead of 8", size_of(ISlangFileSystem));
+    {
+        info := type_info(ISlangFileSystem);
+        for info.members {
+            if it.name == {
+                case "islangcastable";
+                    assert(it.offset_in_bytes == 0, "ISlangFileSystem.islangcastable has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangFileSystem.islangcastable has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangFileSystem) == 8, "ISlangFileSystem has size % instead of 8", size_of(ISlangFileSystem));
+    }
 
-    assert(size_of(ISlangSharedLibrary_Dep1) == 8, "ISlangSharedLibrary_Dep1 has size % instead of 8", size_of(ISlangSharedLibrary_Dep1));
+    {
+        info := type_info(ISlangSharedLibrary_Dep1);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangSharedLibrary_Dep1.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangSharedLibrary_Dep1.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangSharedLibrary_Dep1) == 8, "ISlangSharedLibrary_Dep1 has size % instead of 8", size_of(ISlangSharedLibrary_Dep1));
+    }
 
-    assert(size_of(ISlangSharedLibrary) == 8, "ISlangSharedLibrary has size % instead of 8", size_of(ISlangSharedLibrary));
+    {
+        info := type_info(ISlangSharedLibrary);
+        for info.members {
+            if it.name == {
+                case "islangcastable";
+                    assert(it.offset_in_bytes == 0, "ISlangSharedLibrary.islangcastable has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangSharedLibrary.islangcastable has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangSharedLibrary) == 8, "ISlangSharedLibrary has size % instead of 8", size_of(ISlangSharedLibrary));
+    }
 
-    assert(size_of(ISlangSharedLibraryLoader) == 8, "ISlangSharedLibraryLoader has size % instead of 8", size_of(ISlangSharedLibraryLoader));
+    {
+        info := type_info(ISlangSharedLibraryLoader);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangSharedLibraryLoader.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangSharedLibraryLoader.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangSharedLibraryLoader) == 8, "ISlangSharedLibraryLoader has size % instead of 8", size_of(ISlangSharedLibraryLoader));
+    }
 
-    assert(size_of(ISlangFileSystemExt) == 8, "ISlangFileSystemExt has size % instead of 8", size_of(ISlangFileSystemExt));
+    {
+        info := type_info(ISlangFileSystemExt);
+        for info.members {
+            if it.name == {
+                case "islangfilesystem";
+                    assert(it.offset_in_bytes == 0, "ISlangFileSystemExt.islangfilesystem has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangFileSystemExt.islangfilesystem has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangFileSystemExt) == 8, "ISlangFileSystemExt has size % instead of 8", size_of(ISlangFileSystemExt));
+    }
 
-    assert(size_of(ISlangMutableFileSystem) == 8, "ISlangMutableFileSystem has size % instead of 8", size_of(ISlangMutableFileSystem));
+    {
+        info := type_info(ISlangMutableFileSystem);
+        for info.members {
+            if it.name == {
+                case "islangfilesystemext";
+                    assert(it.offset_in_bytes == 0, "ISlangMutableFileSystem.islangfilesystemext has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangMutableFileSystem.islangfilesystemext has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangMutableFileSystem) == 8, "ISlangMutableFileSystem has size % instead of 8", size_of(ISlangMutableFileSystem));
+    }
 
-    assert(size_of(ISlangWriter) == 8, "ISlangWriter has size % instead of 8", size_of(ISlangWriter));
+    {
+        info := type_info(ISlangWriter);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangWriter.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangWriter.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangWriter) == 8, "ISlangWriter has size % instead of 8", size_of(ISlangWriter));
+    }
 
-    assert(size_of(ISlangProfiler) == 8, "ISlangProfiler has size % instead of 8", size_of(ISlangProfiler));
+    {
+        info := type_info(ISlangProfiler);
+        for info.members {
+            if it.name == {
+                case "islangunknown";
+                    assert(it.offset_in_bytes == 0, "ISlangProfiler.islangunknown has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "ISlangProfiler.islangunknown has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(ISlangProfiler) == 8, "ISlangProfiler has size % instead of 8", size_of(ISlangProfiler));
+    }
 
     {
         info := type_info(SlangReflectionGenericArg);
