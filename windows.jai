@@ -95,6 +95,8 @@ SLANG_PSP2 :: 0;
 
 SLANG_WIIU :: 0;
 
+SLANG_WASM :: 0;
+
 SLANG_GCC_FAMILY :: SLANG_CLANG || SLANG_SNC || SLANG_GHS || SLANG_GCC;
 SLANG_WINDOWS_FAMILY :: SLANG_WINRT || SLANG_WIN32 || SLANG_WIN64;
 SLANG_MICROSOFT_FAMILY :: SLANG_XBOXONE || SLANG_X360 || SLANG_WINDOWS_FAMILY;
@@ -128,6 +130,8 @@ SLANG_PROCESSOR_POWER_PC :: 0;
 
 SLANG_PROCESSOR_POWER_PC_64 :: 0;
 
+SLANG_PROCESSOR_WASM :: 0;
+
 SLANG_PROCESSOR_FAMILY_X86 :: SLANG_PROCESSOR_X86_64 | SLANG_PROCESSOR_X86;
 SLANG_PROCESSOR_FAMILY_ARM :: SLANG_PROCESSOR_ARM | SLANG_PROCESSOR_ARM_64;
 SLANG_PROCESSOR_FAMILY_POWER_PC :: SLANG_PROCESSOR_POWER_PC_64 | SLANG_PROCESSOR_POWER_PC;
@@ -158,6 +162,7 @@ SLANG_FACILITY_EXTERNAL_BASE :: 0x210;
 SLANG_OK :: 0;
 
 SLANG_UNBOUNDED_SIZE :: 18446744073709551615;
+SLANG_UNKNOWN_SIZE :: SLANG_UNBOUNDED_SIZE - 1;
 
 SLANG_API_VERSION :: 0;
 
@@ -271,7 +276,14 @@ SlangCompileTarget :: enum SlangCompileTargetIntegral {
     WGSL_SPIRV                      :: 30;
 
     HOST_VM                         :: 31;
-    TARGET_COUNT_OF                 :: 32;
+    CPP_HEADER                      :: 32;
+    CUDA_HEADER                     :: 33;
+
+    HOST_OBJECT_CODE                :: 34;
+    HOST_LLVM_IR                    :: 35;
+    SHADER_LLVM_IR                  :: 36;
+
+    TARGET_COUNT_OF                 :: 37;
 
     SLANG_TARGET_UNKNOWN                  :: TARGET_UNKNOWN;
     SLANG_TARGET_NONE                     :: TARGET_NONE;
@@ -308,6 +320,13 @@ SlangCompileTarget :: enum SlangCompileTargetIntegral {
     SLANG_WGSL_SPIRV                      :: WGSL_SPIRV;
 
     SLANG_HOST_VM                         :: HOST_VM;
+    SLANG_CPP_HEADER                      :: CPP_HEADER;
+    SLANG_CUDA_HEADER                     :: CUDA_HEADER;
+
+    SLANG_HOST_OBJECT_CODE                :: HOST_OBJECT_CODE;
+    SLANG_HOST_LLVM_IR                    :: HOST_LLVM_IR;
+    SLANG_SHADER_LLVM_IR                  :: SHADER_LLVM_IR;
+
     SLANG_TARGET_COUNT_OF                 :: TARGET_COUNT_OF;
 }
 
@@ -491,7 +510,8 @@ SlangSourceLanguage :: enum SlangSourceLanguageIntegral {
     SPIRV    :: 7;
     METAL    :: 8;
     WGSL     :: 9;
-    COUNT_OF :: 10;
+    LLVM     :: 10;
+    COUNT_OF :: 11;
 
     SLANG_SOURCE_LANGUAGE_UNKNOWN  :: UNKNOWN;
     SLANG_SOURCE_LANGUAGE_SLANG    :: SLANG;
@@ -503,6 +523,7 @@ SlangSourceLanguage :: enum SlangSourceLanguageIntegral {
     SLANG_SOURCE_LANGUAGE_SPIRV    :: SPIRV;
     SLANG_SOURCE_LANGUAGE_METAL    :: METAL;
     SLANG_SOURCE_LANGUAGE_WGSL     :: WGSL;
+    SLANG_SOURCE_LANGUAGE_LLVM     :: LLVM;
     SLANG_SOURCE_LANGUAGE_COUNT_OF :: COUNT_OF;
 }
 
@@ -639,6 +660,26 @@ SlangEmitSpirvMethod :: enum s32 {
     SLANG_EMIT_SPIRV_VIA_GLSL :: VIA_GLSL;
     SLANG_EMIT_SPIRV_DIRECTLY :: DIRECTLY;
 }
+
+SlangEmitCPUMethod :: enum s32 {
+    DEFAULT  :: 0;
+    VIA_CPP  :: 1;
+    VIA_LLVM :: 2;
+
+    SLANG_EMIT_CPU_DEFAULT  :: DEFAULT;
+    SLANG_EMIT_CPU_VIA_CPP  :: VIA_CPP;
+    SLANG_EMIT_CPU_VIA_LLVM :: VIA_LLVM;
+}
+
+SlangDiagnosticColor :: enum s32 {
+    AUTO   :: 0;
+    ALWAYS :: 1;
+    NEVER  :: 2;
+
+    SLANG_DIAGNOSTIC_COLOR_AUTO   :: AUTO;
+    SLANG_DIAGNOSTIC_COLOR_ALWAYS :: ALWAYS;
+    SLANG_DIAGNOSTIC_COLOR_NEVER  :: NEVER;
+}
 // All compiler option names supported by Slang.
 
 CompilerOptionName :: enum s32 {
@@ -746,60 +787,83 @@ CompilerOptionName :: enum s32 {
     AllowGLSL                         :: 91;
     EnableExperimentalPasses          :: 92;
     BindlessSpaceIndex                :: 93;
+    SPIRVResourceHeapStride           :: 94;
+    SPIRVSamplerHeapStride            :: 95;
 
-    ArchiveType                       :: 94;
-    CompileCoreModule                 :: 95;
-    Doc                               :: 96;
+    ArchiveType                       :: 96;
+    CompileCoreModule                 :: 97;
+    Doc                               :: 98;
 
-    IrCompression                     :: 97;
+    IrCompression                     :: 99;
 
-    LoadCoreModule                    :: 98;
-    ReferenceModule                   :: 99;
-    SaveCoreModule                    :: 100;
-    SaveCoreModuleBinSource           :: 101;
-    TrackLiveness                     :: 102;
-    LoopInversion                     :: 103;
+    LoadCoreModule                    :: 100;
+    ReferenceModule                   :: 101;
+    SaveCoreModule                    :: 102;
+    SaveCoreModuleBinSource           :: 103;
+    TrackLiveness                     :: 104;
+    LoopInversion                     :: 105;
 
-    ParameterBlocksUseRegisterSpaces  :: 104;
-    LanguageVersion                   :: 105;
-    TypeConformance                   :: 106;
+    ParameterBlocksUseRegisterSpaces  :: 106;
+    LanguageVersion                   :: 107;
+    TypeConformance                   :: 108;
 
-    EnableExperimentalDynamicDispatch :: 107;
-    EmitReflectionJSON                :: 108;
+    EnableExperimentalDynamicDispatch :: 109;
+    EmitReflectionJSON                :: 110;
 
-    CountOfParsableOptions            :: 109;
+    CountOfParsableOptions            :: 111;
 
-    DebugInformationFormat            :: 110;
-    VulkanBindShiftAll                :: 111;
-    GenerateWholeProgram              :: 112;
-    UseUpToDateBinaryModule           :: 113;
+    DebugInformationFormat            :: 112;
+    VulkanBindShiftAll                :: 113;
+    GenerateWholeProgram              :: 114;
+    UseUpToDateBinaryModule           :: 115;
 
-    EmbedDownstreamIR                 :: 114;
-    ForceDXLayout                     :: 115;
+    EmbedDownstreamIR                 :: 116;
+    ForceDXLayout                     :: 117;
 
-    EmitSpirvMethod                   :: 116;
+    EmitSpirvMethod                   :: 118;
 
-    SaveGLSLModuleBinSource           :: 117;
+    SaveGLSLModuleBinSource           :: 119;
 
-    SkipDownstreamLinking             :: 118;
-    DumpModule                        :: 119;
+    SkipDownstreamLinking             :: 120;
+    DumpModule                        :: 121;
 
-    GetModuleInfo                     :: 120;
-    GetSupportedModuleVersions        :: 121;
+    GetModuleInfo                     :: 122;
+    GetSupportedModuleVersions        :: 123;
 
-    EmitSeparateDebug                 :: 122;
+    EmitSeparateDebug                 :: 124;
 
-    DenormalModeFp16                  :: 123;
-    DenormalModeFp32                  :: 124;
-    DenormalModeFp64                  :: 125;
+    DenormalModeFp16                  :: 125;
+    DenormalModeFp32                  :: 126;
+    DenormalModeFp64                  :: 127;
 
-    UseMSVCStyleBitfieldPacking       :: 126;
+    UseMSVCStyleBitfieldPacking       :: 128;
 
-    ForceCLayout                      :: 127;
+    ForceCLayout                      :: 129;
 
-    ExperimentalFeature               :: 128;
+    ExperimentalFeature               :: 130;
 
-    CountOf                           :: 129;
+    ReportDetailedPerfBenchmark       :: 131;
+
+    ValidateIRDetailed                :: 132;
+    DumpIRBefore                      :: 133;
+    DumpIRAfter                       :: 134;
+
+    EmitCPUMethod                     :: 135;
+    EmitCPUViaCPP                     :: 136;
+    EmitCPUViaLLVM                    :: 137;
+    LLVMTargetTriple                  :: 138;
+    LLVMCPU                           :: 139;
+    LLVMFeatures                      :: 140;
+
+    EnableRichDiagnostics             :: 141;
+
+    ReportDynamicDispatchSites        :: 142;
+
+    EnableMachineReadableDiagnostics  :: 143;
+
+    DiagnosticColor                   :: 144;
+
+    CountOf                           :: 145;
 }
 
 CompilerOptionValueKind :: enum s32 {
@@ -1114,6 +1178,7 @@ TypeReflection :: struct {
         Pointer              :: 18;
         DynamicResource      :: 19;
         MeshOutput           :: 15;
+        Enum                 :: 20;
     }
 
     ScalarType :: enum SlangScalarTypeIntegral {
@@ -1252,6 +1317,8 @@ TypeParameterReflection :: struct {
 LayoutRules :: enum SlangLayoutRulesIntegral {
     Default                  :: 0;
     MetalArgumentBufferTier2 :: 1;
+    DefaultStructuredBuffer  :: 2;
+    DefaultConstantBuffer    :: 3;
 }
 
 ProgramLayout :: ShaderReflection;
@@ -1272,6 +1339,7 @@ DeclReflection :: struct {
         Generic     :: 4;
         Variable    :: 5;
         Namespace   :: 6;
+        Enum        :: 7;
     }
 
     FilteredList :: struct(K: Kind) {
@@ -1521,6 +1589,12 @@ ContainerType :: enum s32 {
     ParameterBlock   :: 4;
 }
 
+SourceLocation :: struct {
+    filePath: *u8 = null;
+    line:     SlangInt = -1;
+    column:   SlangInt = -1;
+}
+
 /** A session provides a scope for code that is loaded.
 
 A session can be used to load modules of Slang source code,
@@ -1572,6 +1646,7 @@ ISession_VTable :: struct #type_info_none {
     loadModuleFromSourceString:            #type (this: *ISession, moduleName: *u8, path: *u8, _string: *u8, outDiagnostics: **IBlob = null) -> *IModule #cpp_method;
     getDynamicObjectRTTIBytes:             #type (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outRTTIDataBuffer: *u32, bufferSizeInBytes: u32) -> SlangResult #cpp_method;
     loadModuleInfoFromIRBlob:              #type (this: *ISession, source: *IBlob, outModuleVersion: *SlangInt, outModuleCompilerVersion: **u8, outModuleName: **u8) -> SlangResult #cpp_method;
+    getDeclSourceLocation:                 #type (this: *ISession, decl: *DeclReflection, outLocation: *SourceLocation) -> SlangResult #cpp_method;
 }
 ISession_getGlobalSession :: inline (this: *ISession) -> *IGlobalSession { return this.vtable.getGlobalSession(this); }
 
@@ -1611,6 +1686,8 @@ ISession_loadModuleFromSourceString :: inline (this: *ISession, moduleName: *u8,
 ISession_getDynamicObjectRTTIBytes :: inline (this: *ISession, type: *TypeReflection, interfaceType: *TypeReflection, outRTTIDataBuffer: *u32, bufferSizeInBytes: u32) -> SlangResult { return this.vtable.getDynamicObjectRTTIBytes(this, type, interfaceType, outRTTIDataBuffer, bufferSizeInBytes); }
 
 ISession_loadModuleInfoFromIRBlob :: inline (this: *ISession, source: *IBlob, outModuleVersion: *SlangInt, outModuleCompilerVersion: **u8, outModuleName: **u8) -> SlangResult { return this.vtable.loadModuleInfoFromIRBlob(this, source, outModuleVersion, outModuleCompilerVersion, outModuleName); }
+
+ISession_getDeclSourceLocation :: inline (this: *ISession, decl: *DeclReflection, outLocation: *SourceLocation) -> SlangResult { return this.vtable.getDeclSourceLocation(this, decl, outLocation); }
 
 vtable :: (obj: *ISession) -> *ISession_VTable { return obj.vtable; }
 
@@ -1799,10 +1876,13 @@ IComponentType2_VTable :: struct #type_info_none {
     using vtable:               ISlangUnknown_VTable;
     getTargetCompileResult:     #type (this: *IComponentType2, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
     getEntryPointCompileResult: #type (this: *IComponentType2, entryPointIndex: SlangInt, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
+    getTargetHostCallable:      #type (this: *IComponentType2, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult #cpp_method;
 }
 IComponentType2_getTargetCompileResult :: inline (this: *IComponentType2, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getTargetCompileResult(this, targetIndex, outCompileResult, outDiagnostics); }
 
 IComponentType2_getEntryPointCompileResult :: inline (this: *IComponentType2, entryPointIndex: SlangInt, targetIndex: SlangInt, outCompileResult: **ICompileResult, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getEntryPointCompileResult(this, entryPointIndex, targetIndex, outCompileResult, outDiagnostics); }
+
+IComponentType2_getTargetHostCallable :: inline (this: *IComponentType2, targetIndex: s32, outSharedLibrary: **ISlangSharedLibrary, outDiagnostics: **IBlob = null) -> SlangResult { return this.vtable.getTargetHostCallable(this, targetIndex, outSharedLibrary, outDiagnostics); }
 
 vtable :: (obj: *IComponentType2) -> *IComponentType2_VTable { return obj.vtable; }
 
@@ -2463,7 +2543,8 @@ SlangTypeKind :: enum SlangTypeKindIntegral {
     FEEDBACK               :: 17;
     POINTER                :: 18;
     DYNAMIC_RESOURCE       :: 19;
-    COUNT                  :: 20;
+    ENUM                   :: 20;
+    COUNT                  :: 21;
 
     SLANG_TYPE_KIND_NONE                   :: NONE;
     SLANG_TYPE_KIND_STRUCT                 :: STRUCT;
@@ -2485,6 +2566,7 @@ SlangTypeKind :: enum SlangTypeKindIntegral {
     SLANG_TYPE_KIND_FEEDBACK               :: FEEDBACK;
     SLANG_TYPE_KIND_POINTER                :: POINTER;
     SLANG_TYPE_KIND_DYNAMIC_RESOURCE       :: DYNAMIC_RESOURCE;
+    SLANG_TYPE_KIND_ENUM                   :: ENUM;
     SLANG_TYPE_KIND_COUNT                  :: COUNT;
 }
 
@@ -2535,6 +2617,7 @@ SlangDeclKind :: enum SlangDeclKindIntegral {
     GENERIC                    :: 4;
     VARIABLE                   :: 5;
     NAMESPACE                  :: 6;
+    ENUM                       :: 7;
 
     SLANG_DECL_KIND_UNSUPPORTED_FOR_REFLECTION :: UNSUPPORTED_FOR_REFLECTION;
     SLANG_DECL_KIND_STRUCT                     :: STRUCT;
@@ -2543,6 +2626,7 @@ SlangDeclKind :: enum SlangDeclKindIntegral {
     SLANG_DECL_KIND_GENERIC                    :: GENERIC;
     SLANG_DECL_KIND_VARIABLE                   :: VARIABLE;
     SLANG_DECL_KIND_NAMESPACE                  :: NAMESPACE;
+    SLANG_DECL_KIND_ENUM                       :: ENUM;
 }
 
 SlangResourceShapeIntegral :: u32;
@@ -2822,9 +2906,13 @@ SlangLayoutRulesIntegral :: SlangUInt32;
 SlangLayoutRules :: enum SlangLayoutRulesIntegral {
     DEFAULT                      :: 0;
     METAL_ARGUMENT_BUFFER_TIER_2 :: 1;
+    DEFAULT_STRUCTURED_BUFFER    :: 2;
+    DEFAULT_CONSTANT_BUFFER      :: 3;
 
     SLANG_LAYOUT_RULES_DEFAULT                      :: DEFAULT;
     SLANG_LAYOUT_RULES_METAL_ARGUMENT_BUFFER_TIER_2 :: METAL_ARGUMENT_BUFFER_TIER_2;
+    SLANG_LAYOUT_RULES_DEFAULT_STRUCTURED_BUFFER    :: DEFAULT_STRUCTURED_BUFFER;
+    SLANG_LAYOUT_RULES_DEFAULT_CONSTANT_BUFFER      :: DEFAULT_CONSTANT_BUFFER;
 }
 
 SlangModifierIDIntegral :: SlangUInt32;
@@ -3282,8 +3370,21 @@ spReflectionType_GetGenericContainer :: (type: *SlangReflectionType) -> *SlangRe
 // Type Layout Reflection
 spReflectionTypeLayout_GetType :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionType #foreign slang_compiler;
 spReflectionTypeLayout_getKind :: (type: *SlangReflectionTypeLayout) -> SlangTypeKind #foreign slang_compiler;
+
+/** Get the size of a type layout in the specified parameter category.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources (e.g., unsized arrays).
+* Returns `SLANG_UNKNOWN_SIZE` when the size depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_GetSize :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang_compiler;
 
+/** Get the stride of a type layout in the specified parameter category.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources.
+* Returns `SLANG_UNKNOWN_SIZE` when stride depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_GetStride :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang_compiler;
 
 spReflectionTypeLayout_getAlignment :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> s32 #foreign slang_compiler;
@@ -3295,6 +3396,12 @@ spReflectionTypeLayout_findFieldIndexByName :: (typeLayout: *SlangReflectionType
 
 spReflectionTypeLayout_GetExplicitCounter :: (typeLayout: *SlangReflectionTypeLayout) -> *SlangReflectionVariableLayout #foreign slang_compiler;
 
+/** Get the stride between elements of an array type layout.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources.
+* Returns `SLANG_UNKNOWN_SIZE` when element stride depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_GetElementStride :: (type: *SlangReflectionTypeLayout, category: SlangParameterCategory) -> u64 #foreign slang_compiler;
 
 spReflectionTypeLayout_GetElementTypeLayout :: (type: *SlangReflectionTypeLayout) -> *SlangReflectionTypeLayout #foreign slang_compiler;
@@ -3324,6 +3431,12 @@ spReflectionTypeLayout_getBindingRangeType :: (typeLayout: *SlangReflectionTypeL
 
 spReflectionTypeLayout_isBindingRangeSpecializable :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang_compiler;
 
+/** Get the binding count for a binding range at the specified index.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources.
+* Returns `SLANG_UNKNOWN_SIZE` when the count depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_getBindingRangeBindingCount :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> SlangInt #foreign slang_compiler;
 
 spReflectionTypeLayout_getBindingRangeLeafTypeLayout :: (typeLayout: *SlangReflectionTypeLayout, index: SlangInt) -> *SlangReflectionTypeLayout #foreign slang_compiler;
@@ -3347,8 +3460,19 @@ spReflectionTypeLayout_getDescriptorSetSpaceOffset :: (typeLayout: *SlangReflect
 
 spReflectionTypeLayout_getDescriptorSetDescriptorRangeCount :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt) -> SlangInt #foreign slang_compiler;
 
+/** Get the index offset for a descriptor range within a descriptor set.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the offset depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_getDescriptorSetDescriptorRangeIndexOffset :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangInt #foreign slang_compiler;
 
+/** Get the descriptor count for a descriptor range within a descriptor set.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources.
+* Returns `SLANG_UNKNOWN_SIZE` when the count depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_getDescriptorSetDescriptorRangeDescriptorCount :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangInt #foreign slang_compiler;
 
 spReflectionTypeLayout_getDescriptorSetDescriptorRangeType :: (typeLayout: *SlangReflectionTypeLayout, setIndex: SlangInt, rangeIndex: SlangInt) -> SlangBindingType #foreign slang_compiler;
@@ -3358,6 +3482,11 @@ spReflectionTypeLayout_getDescriptorSetDescriptorRangeCategory :: (typeLayout: *
 spReflectionTypeLayout_getSubObjectRangeCount :: (typeLayout: *SlangReflectionTypeLayout) -> SlangInt #foreign slang_compiler;
 spReflectionTypeLayout_getSubObjectRangeBindingRangeIndex :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> SlangInt #foreign slang_compiler;
 
+/** Get the space offset for a sub-object range.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the offset depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionTypeLayout_getSubObjectRangeSpaceOffset :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> SlangInt #foreign slang_compiler;
 
 spReflectionTypeLayout_getSubObjectRangeOffset :: (typeLayout: *SlangReflectionTypeLayout, subObjectRangeIndex: SlangInt) -> *SlangReflectionVariableLayout #foreign slang_compiler;
@@ -3375,6 +3504,8 @@ spReflectionVariable_FindUserAttributeByName :: (var: *SlangReflectionVariable, 
 spReflectionVariable_HasDefaultValue :: (inVar: *SlangReflectionVariable) -> bool #foreign slang_compiler;
 
 spReflectionVariable_GetDefaultValueInt :: (inVar: *SlangReflectionVariable, rs: *s64) -> SlangResult #foreign slang_compiler;
+
+spReflectionVariable_GetDefaultValueFloat :: (inVar: *SlangReflectionVariable, rs: *float) -> SlangResult #foreign slang_compiler;
 spReflectionVariable_GetGenericContainer :: (var: *SlangReflectionVariable) -> *SlangReflectionGeneric #foreign slang_compiler;
 
 spReflectionVariable_applySpecializations :: (var: *SlangReflectionVariable, generic: *SlangReflectionGeneric) -> *SlangReflectionVariable #foreign slang_compiler;
@@ -3384,8 +3515,18 @@ spReflectionVariableLayout_GetVariable :: (var: *SlangReflectionVariableLayout) 
 
 spReflectionVariableLayout_GetTypeLayout :: (var: *SlangReflectionVariableLayout) -> *SlangReflectionTypeLayout #foreign slang_compiler;
 
+/** Get the offset of a variable in the specified parameter category.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the offset depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionVariableLayout_GetOffset :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang_compiler;
 
+/** Get the register space/set of a variable in the specified parameter category.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the space depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionVariableLayout_GetSpace :: (var: *SlangReflectionVariableLayout, category: SlangParameterCategory) -> u64 #foreign slang_compiler;
 
 spReflectionVariableLayout_GetImageFormat :: (var: *SlangReflectionVariableLayout) -> SlangImageFormat #foreign slang_compiler;
@@ -3470,8 +3611,18 @@ spReflectionVariableLayout_getStage :: (var: *SlangReflectionVariableLayout) -> 
 
 spReflectionVariableLayout_getPendingDataLayout :: (var: *SlangReflectionVariableLayout) -> *SlangReflectionVariableLayout #foreign slang_compiler;
 
-// Shader Parameter Reflection
+/** Get the binding index for a shader parameter.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the index depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionParameter_GetBindingIndex :: (parameter: *SlangReflectionParameter) -> u32 #foreign slang_compiler;
+
+/** Get the binding space for a shader parameter.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the space depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflectionParameter_GetBindingSpace :: (parameter: *SlangReflectionParameter) -> u32 #foreign slang_compiler;
 
 spIsParameterLocationUsed :: (request: *SlangCompileRequest, entryPointIndex: SlangInt, targetIndex: SlangInt, category: SlangParameterCategory, spaceIndex: SlangUInt, registerIndex: SlangUInt, outUsed: *bool) -> SlangResult #foreign slang_compiler;
@@ -3537,7 +3688,19 @@ spReflection_getEntryPointByIndex :: (reflection: *SlangReflection, index: Slang
 
 spReflection_findEntryPointByName :: (reflection: *SlangReflection, name: *u8) -> *SlangReflectionEntryPoint #foreign slang_compiler;
 
+/** Get the binding index for the global constant buffer.
+*
+* Returns `SLANG_UNKNOWN_SIZE` when the binding depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflection_getGlobalConstantBufferBinding :: (reflection: *SlangReflection) -> SlangUInt #foreign slang_compiler;
+
+/** Get the size of the global constant buffer.
+*
+* Returns `SLANG_UNBOUNDED_SIZE` for unbounded resources.
+* Returns `SLANG_UNKNOWN_SIZE` when the size depends on unresolved generic parameters or
+* link-time constants.
+*/
 spReflection_getGlobalConstantBufferSize :: (reflection: *SlangReflection) -> u64 #foreign slang_compiler;
 
 spReflection_specializeType :: (reflection: *SlangReflection, type: *SlangReflectionType, specializationArgCount: SlangInt, specializationArgs: **SlangReflectionType, outDiagnostics: **ISlangBlob) -> *SlangReflectionType #foreign slang_compiler;
@@ -3564,6 +3727,11 @@ spReflection_getGlobalParamsTypeLayout :: (reflection: *SlangReflection) -> *Sla
 spReflection_getGlobalParamsVarLayout :: (reflection: *SlangReflection) -> *SlangReflectionVariableLayout #foreign slang_compiler;
 
 spGetTranslationUnitSource :: (request: *SlangCompileRequest, translationUnitIndex: s32) -> *u8 #foreign slang_compiler;
+
+/** Get the descriptor set/space index allocated for the bindless resource heap.
+*  Returns -1 if the program does not use bindless resource heap.
+*/
+spReflection_getBindlessSpaceIndex :: (reflection: *SlangReflection) -> SlangInt #foreign slang_compiler;
 
 spReflection_GetSession :: (reflection: *SlangReflection) -> *ISession #foreign slang_compiler "?spReflection_GetSession@@YAPEAUISession@slang@@PEAUSlangProgramLayout@@@Z";
 
@@ -3961,6 +4129,24 @@ slang_disassembleByteCode :: (moduleBlob: *IBlob, outDisassemblyBlob: **IBlob) -
             }
         }
         assert(size_of(SessionDesc) == 96, "SessionDesc has size % instead of 96", size_of(SessionDesc));
+    }
+
+    {
+        info := type_info(SourceLocation);
+        for info.members {
+            if it.name == {
+                case "filePath";
+                    assert(it.offset_in_bytes == 0, "SourceLocation.filePath has unexpected offset % instead of 0", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SourceLocation.filePath has unexpected size % instead of 8", it.type.runtime_size);
+                case "line";
+                    assert(it.offset_in_bytes == 8, "SourceLocation.line has unexpected offset % instead of 8", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SourceLocation.line has unexpected size % instead of 8", it.type.runtime_size);
+                case "column";
+                    assert(it.offset_in_bytes == 16, "SourceLocation.column has unexpected offset % instead of 16", it.offset_in_bytes);
+                    assert(it.type.runtime_size == 8, "SourceLocation.column has unexpected size % instead of 8", it.type.runtime_size);
+            }
+        }
+        assert(size_of(SourceLocation) == 24, "SourceLocation has size % instead of 24", size_of(SourceLocation));
     }
 
     {
